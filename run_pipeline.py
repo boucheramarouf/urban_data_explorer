@@ -1,14 +1,14 @@
 """
 run_pipeline.py
 ===============
-Orchestrateur du pipeline ITR Paris.
-Lance les couches dans l'ordre : Bronze → Silver → Gold.
+Orchestrateur global — Urban Data Explorer.
+Chaque indicateur vit dans son propre sous-dossier.
 
 Usage :
-    python run_pipeline.py              # tout le pipeline
-    python run_pipeline.py --bronze     # bronze uniquement
-    python run_pipeline.py --silver     # silver uniquement
-    python run_pipeline.py --gold       # gold uniquement
+    python run_pipeline.py                             # tous les indicateurs, tout le pipeline
+    python run_pipeline.py --indicateur ITR            # ITR uniquement, tout le pipeline
+    python run_pipeline.py --bronze                    # bronze de tous les indicateurs
+    python run_pipeline.py --bronze --indicateur ITR   # bronze ITR uniquement
 """
 
 import sys
@@ -18,54 +18,96 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 
-def run_bronze():
-    print("\n" + "=" * 50)
-    print("  COUCHE BRONZE")
-    print("=" * 50)
-    from src.bronze.dvf_bronze               import run as dvf
-    from src.bronze.filosofi_bronze          import run as filosofi
-    from src.bronze.logements_sociaux_bronze import run as logsoc
-    from src.bronze.iris_geo_bronze          import run as iris
+# ──────────────────────────────────────────────────────────────
+# REGISTRE DES INDICATEURS
+# Chaque équipe ajoute son indicateur ici avec ses 3 fonctions
+# ──────────────────────────────────────────────────────────────
+
+def get_indicateurs():
+    return {
+        "ITR": {
+            "label"  : "Indice de Tension Résidentielle",
+            "bronze" : _bronze_itr,
+            "silver" : _silver_itr,
+            "gold"   : _gold_itr,
+        },
+        # Exemple pour une autre équipe :
+        # "AIR": {
+        #     "label"  : "Qualité de l'air",
+        #     "bronze" : _bronze_air,
+        #     "silver" : _silver_air,
+        #     "gold"   : _gold_air,
+        # },
+    }
+
+
+# ──────────────────────────────────────────────────────────────
+# FONCTIONS PAR INDICATEUR
+# ──────────────────────────────────────────────────────────────
+
+def _bronze_itr():
+    from src.bronze.bronze_ITR.dvf_bronze              import run as dvf
+    from src.bronze.bronze_ITR.filosofi_bronze         import run as filosofi
+    from src.bronze.bronze_ITR.logements_sociaux_bronze import run as logsoc
+    from src.bronze.bronze_ITR.iris_geo_bronze         import run as iris
     dvf();      print()
     filosofi(); print()
     logsoc();   print()
     iris()
 
-
-def run_silver():
-    print("\n" + "=" * 50)
-    print("  COUCHE SILVER")
-    print("=" * 50)
-    from src.silver.dvf_silver               import run as dvf
-    from src.silver.logements_sociaux_silver import run as logsoc
-    from src.silver.rue_enrichie_silver      import run as rue
+def _silver_itr():
+    from src.silver.silver_ITR.dvf_silver               import run as dvf
+    from src.silver.silver_ITR.logements_sociaux_silver import run as logsoc
+    from src.silver.silver_ITR.rue_enrichie_silver      import run as rue
     dvf();    print()
     logsoc(); print()
     rue()
 
-
-def run_gold():
-    print("\n" + "=" * 50)
-    print("  COUCHE GOLD")
-    print("=" * 50)
-    from src.gold.itr_gold import run as itr
+def _gold_itr():
+    from src.gold.gold_ITR.itr_gold import run as itr
     itr()
+
+
+# ──────────────────────────────────────────────────────────────
+# ORCHESTRATEUR
+# ──────────────────────────────────────────────────────────────
+
+def run_couche(couche: str, indicateurs: dict):
+    print("\n" + "=" * 50)
+    print(f"  COUCHE {couche.upper()}")
+    print("=" * 50)
+    for nom, indic in indicateurs.items():
+        print(f"\n  ── {nom} : {indic['label']} ──")
+        indic[couche]()
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    t0 = time.time()
+    t0   = time.time()
 
-    if "--bronze" in args:
-        run_bronze()
-    elif "--silver" in args:
-        run_silver()
-    elif "--gold" in args:
-        run_gold()
+    # Résoudre quels indicateurs lancer
+    tous = get_indicateurs()
+    if "--indicateur" in args:
+        idx = args.index("--indicateur")
+        nom = args[idx + 1].upper()
+        if nom not in tous:
+            print(f"❌ Indicateur '{nom}' inconnu. Disponibles : {list(tous.keys())}")
+            sys.exit(1)
+        cibles = {nom: tous[nom]}
     else:
-        run_bronze()
-        run_silver()
-        run_gold()
+        cibles = tous
+
+    # Résoudre quelles couches lancer
+    if "--bronze" in args:
+        run_couche("bronze", cibles)
+    elif "--silver" in args:
+        run_couche("silver", cibles)
+    elif "--gold" in args:
+        run_couche("gold", cibles)
+    else:
+        run_couche("bronze", cibles)
+        run_couche("silver", cibles)
+        run_couche("gold",   cibles)
 
     elapsed = time.time() - t0
     print(f"\n✓ Pipeline terminé en {elapsed:.1f}s")
