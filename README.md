@@ -9,7 +9,7 @@ Dashboard interactif croisant données de transactions immobilières, revenus m�
 ## 🗂️ Architecture du projet
 
 ```
-itr_paris/
+urban_data_explorer/
 │
 ├── data/
 │   ├── raw/                    ← fichiers sources (à déposer manuellement)
@@ -99,7 +99,7 @@ ITR_score     =  100 × (ITR_brut - min) / (max - min)
 ### 1. Installer les dépendances Python
 
 ```bash
-cd itr_paris
+cd urban_data_explorer
 pip install -r requirements.txt
 ```
 
