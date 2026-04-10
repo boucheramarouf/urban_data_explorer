@@ -1,0 +1,11 @@
+# Pipeline data
+pandas>=2.0.0
+geopandas>=0.14.0
+pyarrow>=14.0.0
+py7zr>=0.20.0
+shapely>=2.0.0
+numpy>=1.26.0
+
+# API
+fastapi>=0.110.0
+uvicorn>=0.29.0

@@ -1,0 +1,59 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary:    #0f1117;
+  --bg-secondary:  #1a1d27;
+  --bg-card:       #21253a;
+  --bg-hover:      #2a2f47;
+  --border:        #2e3348;
+  --text-primary:  #f0f2ff;
+  --text-secondary:#8b92b8;
+  --text-muted:    #555e80;
+  --accent:        #6c7dff;
+  --accent-light:  #8b9aff;
+
+  /* ITR couleurs */
+  --itr-1: #22c55e;
+  --itr-2: #84cc16;
+  --itr-3: #eab308;
+  --itr-4: #f97316;
+  --itr-5: #ef4444;
+
+  --sidebar-width: 360px;
+  --header-height: 56px;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* maplibre overrides */
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left { display: none; }
+.maplibregl-ctrl-top-right { top: 12px; right: 12px; }
+.maplibregl-ctrl-group {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+.maplibregl-ctrl-group button {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.maplibregl-ctrl-group button:last-child { border-bottom: none !important; }
+.maplibregl-ctrl-group button:hover { background: var(--bg-hover) !important; }
