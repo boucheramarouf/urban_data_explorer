@@ -16,9 +16,9 @@ import py7zr
 import shutil
 from pathlib import Path
 
-RAW_PATH    = Path("data/raw/IRIS-GE_3-0__GPKG_LAMB93_D075_2025-01-01.7z")
-OUTPUT_PATH = Path("data/bronze/iris_geo_raw.gpkg")
-TMP_DIR     = Path("data/bronze/_tmp_iris")
+RAW_PATH    = Path("data/raw/raw_ITR/IRIS-GE_3-0__GPKG_LAMB93_D075_2025-01-01.7z")
+OUTPUT_PATH = Path("data/bronze/bronze_ITR/iris_geo_raw.gpkg")
+TMP_DIR     = Path("data/bronze/bronze_ITR/_tmp_iris")
 
 # Colonnes à garder (le GeoPackage IGN contient beaucoup de métadonnées inutiles)
 COLS_A_GARDER = [

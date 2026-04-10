@@ -27,8 +27,8 @@ from typing import Optional
 # CONFIG
 # ──────────────────────────────────────────────
 
-GOLD_PARQUET = Path("data/gold/itr_par_rue.parquet")
-GOLD_GEOJSON = Path("data/gold/itr_par_rue.geojson")
+GOLD_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
+GOLD_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
 
 app = FastAPI(
     title="ITR Paris — Indice de Tension Résidentielle",

@@ -14,8 +14,8 @@ Clé      : IRIS (code 9 chiffres, ex: 751010101)
 import pandas as pd
 from pathlib import Path
 
-RAW_PATH    = Path("data/raw/BASE_TD_FILO_IRIS_2021_DEC.csv")
-OUTPUT_PATH = Path("data/bronze/filosofi_iris_raw.parquet")
+RAW_PATH    = Path("data/raw/raw_ITR/BASE_TD_FILO_IRIS_2021_DEC.csv")
+OUTPUT_PATH = Path("data/bronze/bronze_ITR/filosofi_iris_raw.parquet")
 
 # Colonnes numériques avec décimales françaises (virgule)
 COLS_DECIMAL_FR = [

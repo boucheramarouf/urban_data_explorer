@@ -17,9 +17,9 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-DVF_SILVER    = Path("data/silver/dvf_appart_propre.parquet")
-LOGSOC_SILVER = Path("data/silver/logements_sociaux_par_iris.parquet")
-OUTPUT_PATH   = Path("data/silver/rue_enrichie.parquet")
+DVF_SILVER    = Path("data/silver/silver_ITR/dvf_appart_propre.parquet")
+LOGSOC_SILVER = Path("data/silver/silver_ITR/logements_sociaux_par_iris.parquet")
+OUTPUT_PATH   = Path("data/silver/silver_ITR/rue_enrichie.parquet")
 
 # Nombre minimum de transactions DVF pour qu'une rue soit exploitable
 # En dessous, la médiane des prix/m² n'est pas représentative

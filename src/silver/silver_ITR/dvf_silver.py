@@ -16,10 +16,10 @@ import geopandas as gpd
 import numpy as np
 from pathlib import Path
 
-DVF_BRONZE   = Path("data/bronze/dvf_raw.parquet")
-IRIS_BRONZE  = Path("data/bronze/iris_geo_raw.gpkg")
-FILO_BRONZE  = Path("data/bronze/filosofi_iris_raw.parquet")
-OUTPUT_PATH  = Path("data/silver/dvf_appart_propre.parquet")
+DVF_BRONZE   = Path("data/bronze/bronze_ITR/dvf_raw.parquet")
+IRIS_BRONZE  = Path("data/bronze/bronze_ITR/iris_geo_raw.gpkg")
+FILO_BRONZE  = Path("data/bronze/bronze_ITR/filosofi_iris_raw.parquet")
+OUTPUT_PATH  = Path("data/silver/silver_ITR/dvf_appart_propre.parquet")
 
 MIN_SURFACE  = 5        # m² minimum
 MIN_VALEUR   = 10_000   # € minimum

@@ -22,9 +22,9 @@ import numpy as np
 import json
 from pathlib import Path
 
-SILVER_PATH  = Path("data/silver/rue_enrichie.parquet")
-OUT_PARQUET  = Path("data/gold/itr_par_rue.parquet")
-OUT_GEOJSON  = Path("data/gold/itr_par_rue.geojson")
+SILVER_PATH  = Path("data/silver/silver_ITR/rue_enrichie.parquet")
+OUT_PARQUET  = Path("data/gold/gold_ITR/itr_par_rue.parquet")
+OUT_GEOJSON  = Path("data/gold/gold_ITR/itr_par_rue.geojson")
 
 # Seuils pour les labels (découpage en 5 quintiles fixes)
 LABELS = ["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"]

@@ -14,8 +14,8 @@ Clé      : Identifiant livraison
 import pandas as pd
 from pathlib import Path
 
-RAW_PATH    = Path("data/raw/logements-sociaux-finances-a-paris.csv")
-OUTPUT_PATH = Path("data/bronze/logements_sociaux_raw.parquet")
+RAW_PATH    = Path("data/raw/raw_ITR/logements-sociaux-finances-a-paris.csv")
+OUTPUT_PATH = Path("data/bronze/bronze_ITR/logements_sociaux_raw.parquet")
 
 
 def load_logements_sociaux(path: Path = RAW_PATH) -> pd.DataFrame:

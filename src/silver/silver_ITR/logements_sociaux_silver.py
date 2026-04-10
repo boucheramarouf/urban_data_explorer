@@ -19,9 +19,9 @@ import pandas as pd
 import geopandas as gpd
 from pathlib import Path
 
-LOGSOC_BRONZE = Path("data/bronze/logements_sociaux_raw.parquet")
-IRIS_BRONZE   = Path("data/bronze/iris_geo_raw.gpkg")
-OUTPUT_PATH   = Path("data/silver/logements_sociaux_par_iris.parquet")
+LOGSOC_BRONZE = Path("data/bronze/bronze_ITR/logements_sociaux_raw.parquet")
+IRIS_BRONZE   = Path("data/bronze/bronze_ITR/iris_geo_raw.gpkg")
+OUTPUT_PATH   = Path("data/silver/silver_ITR/logements_sociaux_par_iris.parquet")
 
 
 def load_and_prepare(logsoc_path: Path) -> gpd.GeoDataFrame:

@@ -12,8 +12,8 @@ Lignes   : ~81 500 (toutes mutations Paris 2021)
 import pandas as pd
 from pathlib import Path
 
-RAW_PATH    = Path("data/raw/DVF.csv")
-OUTPUT_PATH = Path("data/bronze/dvf_raw.parquet")
+RAW_PATH    = Path("data/raw/raw_ITR/DVF.csv")
+OUTPUT_PATH = Path("data/bronze/bronze_ITR/dvf_raw.parquet")
 
 
 def load_dvf(path: Path = RAW_PATH) -> pd.DataFrame:
