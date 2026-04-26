@@ -31,13 +31,13 @@ def get_indicateurs():
             "silver" : _silver_itr,
             "gold"   : _gold_itr,
         },
-        # Exemple pour une autre équipe :
-        # "AIR": {
-        #     "label"  : "Qualité de l'air",
-        #     "bronze" : _bronze_air,
-        #     "silver" : _silver_air,
-        #     "gold"   : _gold_air,
-        # },
+        # ── SVP ajouté par branche SVP ──────────────────────────────────
+        "SVP": {
+            "label"  : "Score de Verdure et Proximité",
+            "bronze" : _bronze_svp,
+            "silver" : _silver_svp,
+            "gold"   : _gold_svp,
+        },
     }
 
 
@@ -66,6 +66,29 @@ def _silver_itr():
 def _gold_itr():
     from src.gold.gold_ITR.itr_gold import run as itr
     itr()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SVP — Score de Verdure et Proximité (branche SVP)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _bronze_svp():
+    from src.bronze.bronze_SVP.espaces_verts_bronze import run as ev
+    from src.bronze.bronze_SVP.arbres_bronze         import run as arb
+    from src.bronze.bronze_SVP.commerces_alim_bronze import run as com
+    ev();  print()
+    arb(); print()
+    com()
+
+def _silver_svp():
+    from src.silver.silver_SVP.verdure_silver   import run as verdure
+    from src.silver.silver_SVP.commerces_silver import run as com
+    verdure(); print()
+    com()
+
+def _gold_svp():
+    from src.gold.gold_SVP.svp_gold import run as svp
+    svp()
 
 
 # ──────────────────────────────────────────────────────────────

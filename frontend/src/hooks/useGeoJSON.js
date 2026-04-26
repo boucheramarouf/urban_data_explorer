@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const API = '/api'
+const API = '/api/svp'
 
 export function useGeoJSON(filters = {}) {
   const [data, setData]       = useState(null)

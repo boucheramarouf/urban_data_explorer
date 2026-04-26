@@ -14,9 +14,9 @@ const CustomTooltip = ({ active, payload }) => {
   const d = payload[0].payload
   return (
     <div style={{ background: '#21253a', border: '1px solid #2e3348', borderRadius: 6, padding: '6px 10px' }}>
-      <p style={{ fontSize: 12, color: '#f0f2ff', fontWeight: 600 }}>{d.arrondissement}e arr.</p>
-      <p style={{ fontSize: 11, color: '#8b92b8' }}>Score médian : <b style={{ color: scoreColor(d.itr_score_median) }}>{d.itr_score_median}</b></p>
-      <p style={{ fontSize: 11, color: '#8b92b8' }}>{d.nb_rues} rues analysées</p>
+      <p style={{ fontSize: 12, color: '#f0f2ff', fontWeight: 600 }}>IRIS {d.code_iris}</p>
+      <p style={{ fontSize: 11, color: '#8b92b8' }}>Score médian : <b style={{ color: scoreColor(d.svp_score_median) }}>{d.svp_score_median}</b></p>
+      <p style={{ fontSize: 11, color: '#8b92b8' }}>{d.nb_points} points analysés</p>
     </div>
   )
 }
@@ -24,27 +24,27 @@ const CustomTooltip = ({ active, payload }) => {
 export default function ArrondChart({ data }) {
   if (!data) return null
 
-  const sorted = [...data].sort((a, b) => b.itr_score_median - a.itr_score_median)
+  const sorted = [...data].sort((a, b) => b.svp_score_median - a.svp_score_median)
 
   return (
     <div>
       <p style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-        Classement par arrondissement
+        Classement par IRIS
       </p>
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={sorted} layout="vertical" margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
           <XAxis type="number" domain={[0, 100]} hide />
           <YAxis
             type="category"
-            dataKey="arrondissement"
+            dataKey="code_iris"
             tick={{ fontSize: 10, fill: '#8b92b8' }}
-            tickFormatter={v => `${v}e`}
-            width={28}
+            tickFormatter={v => `IRIS ${v}`}
+            width={60}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-          <Bar dataKey="itr_score_median" radius={[0, 3, 3, 0]}>
+          <Bar dataKey="svp_score_median" radius={[0, 3, 3, 0]}>
             {sorted.map((entry, i) => (
-              <Cell key={i} fill={scoreColor(entry.itr_score_median)} opacity={0.85} />
+              <Cell key={i} fill={scoreColor(entry.svp_score_median)} opacity={0.85} />
             ))}
           </Bar>
         </BarChart>

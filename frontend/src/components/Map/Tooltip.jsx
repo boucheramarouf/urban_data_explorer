@@ -1,11 +1,11 @@
 import React from 'react'
 
 const LABEL_COLOR = {
-  'Très accessible': '#22c55e',
-  'Accessible':      '#84cc16',
-  'Modéré':          '#eab308',
-  'Tendu':           '#f97316',
-  'Très tendu':      '#ef4444',
+  'Très faible': '#22c55e',
+  'Faible':      '#84cc16',
+  'Modéré':      '#eab308',
+  'Bon':         '#f97316',
+  'Excellent':   '#ef4444',
 }
 
 export default function Tooltip({ feature, x, y }) {
@@ -29,7 +29,7 @@ export default function Tooltip({ feature, x, y }) {
     }}>
       {/* Titre */}
       <p style={{ fontWeight: 600, fontSize: 13, color: '#f0f2ff', marginBottom: 2 }}>
-        {p.nom_voie}
+        IRIS {p.code_iris}
       </p>
       <p style={{ fontSize: 11, color: '#8b92b8', marginBottom: 10 }}>
         {p.code_postal} · arr. {p.arrondissement}
@@ -38,30 +38,30 @@ export default function Tooltip({ feature, x, y }) {
       {/* Badge label */}
       <div style={{
         display: 'inline-block',
-        background: LABEL_COLOR[p.itr_label] + '22',
-        border: `1px solid ${LABEL_COLOR[p.itr_label]}55`,
+        background: LABEL_COLOR[p.svp_label] + '22',
+        border: `1px solid ${LABEL_COLOR[p.svp_label]}55`,
         borderRadius: 20,
         padding: '2px 10px',
         marginBottom: 10,
       }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: LABEL_COLOR[p.itr_label] }}>
-          {p.itr_label}
+        <span style={{ fontSize: 11, fontWeight: 600, color: LABEL_COLOR[p.svp_label] }}>
+          {p.svp_label}
         </span>
       </div>
 
       {/* Score barre */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 11, color: '#8b92b8' }}>Score ITR</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: LABEL_COLOR[p.itr_label] }}>
-            {p.itr_score}/100
+          <span style={{ fontSize: 11, color: '#8b92b8' }}>Score SVP</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: LABEL_COLOR[p.svp_label] }}>
+            {p.svp_score}/100
           </span>
         </div>
         <div style={{ height: 4, background: '#2e3348', borderRadius: 2 }}>
           <div style={{
             height: '100%',
-            width: `${p.itr_score}%`,
-            background: LABEL_COLOR[p.itr_label],
+            width: `${p.svp_score}%`,
+            background: LABEL_COLOR[p.svp_label],
             borderRadius: 2,
             transition: 'width 0.3s',
           }} />
@@ -71,10 +71,10 @@ export default function Tooltip({ feature, x, y }) {
       {/* Données clés */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
         {[
-          { label: 'Prix médian', value: `${Math.round(p.prix_m2_median).toLocaleString('fr-FR')} €/m²` },
-          { label: 'Revenu médian', value: `${Math.round(p.revenu_median_uc).toLocaleString('fr-FR')} €/an` },
-          { label: 'Log. sociaux', value: p.nb_logements_sociaux > 0 ? p.nb_logements_sociaux.toLocaleString('fr-FR') : 'Aucun' },
-          { label: 'Ventes 2021', value: `${p.nb_transactions} trans.` },
+          { label: 'Arbres', value: p.nb_arbres.toLocaleString('fr-FR') },
+          { label: 'Espaces verts', value: p.nb_espaces_verts.toLocaleString('fr-FR') },
+          { label: 'Score vert', value: `${Math.round(p.score_vert * 100)}/100` },
+          { label: 'Score alim.', value: `${Math.round(p.score_acces_alim * 100)}/100` },
         ].map(item => (
           <div key={item.label}>
             <p style={{ fontSize: 10, color: '#555e80', marginBottom: 1 }}>{item.label}</p>

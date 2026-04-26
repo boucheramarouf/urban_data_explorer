@@ -35,14 +35,17 @@ export default function StatsPanel({ stats, geojsonCount }) {
     <div>
       {/* KPIs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <StatCard label="Rues analysées" value={stats.nb_rues_total.toLocaleString('fr-FR')} sub="Paris 2021" />
-        <StatCard label="Score médian" value={stats.itr_score_median} sub="sur 100" />
+        <StatCard label="Points analysés" value={stats.nb_points_total.toLocaleString('fr-FR')} sub="Paris 2021" />
+        <StatCard label="Score médian" value={stats.svp_score_median} sub="sur 100" />
       </div>
 
       {/* Distribution labels */}
       <div style={{ marginBottom: 20 }}>
         <p style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-          Distribution de tension
+          Distribution SVP
+        </p>
+        <p style={{ fontSize: 10, color: '#555e80', marginBottom: 8 }}>
+          Top 10 IRIS les plus verts
         </p>
         {Object.entries(stats.distribution_label).map(([label, count]) => {
           const pct = Math.round(count / total * 100)
@@ -61,8 +64,8 @@ export default function StatsPanel({ stats, geojsonCount }) {
         })}
       </div>
 
-      {/* Classement arrondissements */}
-      <ArrondChart data={stats.par_arrondissement} />
+      {/* Classement IRIS */}
+      <ArrondChart data={stats.par_iris} />
     </div>
   )
 }

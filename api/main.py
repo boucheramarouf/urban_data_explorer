@@ -1,18 +1,25 @@
 """
-API FastAPI — ITR Paris
-========================
-Expose les données Gold (itr_par_rue.parquet) via 4 endpoints REST.
+API FastAPI — Urban Data Explorer
+===================================
+Expose les indicateurs ITR et SVP par rue parisienne.
 
 Lancement :
     pip install fastapi uvicorn
     uvicorn api.main:app --reload --port 8000
 
-Endpoints :
-    GET /               → healthcheck
-    GET /stats          → statistiques globales Paris
+Endpoints ITR :
+    GET /               → healthcheck ITR
+    GET /stats          → statistiques globales Paris ITR
     GET /rues           → liste des rues avec score ITR (filtres disponibles)
     GET /rues/{nom}     → détail d'une rue précise
-    GET /geojson        → FeatureCollection GeoJSON complet (pour la carte)
+    GET /geojson        → FeatureCollection GeoJSON complet ITR
+
+Endpoints SVP (Score de Verdure et Proximité) :
+    GET /svp/           → healthcheck SVP
+    GET /svp/stats      → statistiques SVP Paris
+    GET /svp/rues       → liste des rues avec score SVP
+    GET /svp/rues/{nom} → détail SVP d'une rue
+    GET /svp/geojson    → FeatureCollection GeoJSON SVP
 """
 
 from fastapi import FastAPI, Query, HTTPException
@@ -23,6 +30,9 @@ import json
 from pathlib import Path
 from typing import Optional
 
+# ── SVP router (ajout branche SVP) ────────────────────────────────────────────
+from api.svp_router import router as svp_router
+
 # ──────────────────────────────────────────────
 # CONFIG
 # ──────────────────────────────────────────────
@@ -31,8 +41,8 @@ GOLD_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
 GOLD_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
 
 app = FastAPI(
-    title="ITR Paris — Indice de Tension Résidentielle",
-    description="API exposant l'indicateur de tension résidentielle par rue parisienne.",
+    title="Urban Data Explorer — Paris",
+    description="API exposant les indicateurs ITR et SVP par rue parisienne.",
     version="1.0.0",
 )
 
@@ -43,6 +53,10 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+# ── Routers des autres indicateurs ────────────────────────────────────────
+# SVP — Score de Verdure et Proximité (branche SVP)
+app.include_router(svp_router, prefix="/svp")
 
 
 # ──────────────────────────────────────────────
@@ -69,15 +83,49 @@ def get_df() -> pd.DataFrame:
 
 @app.get("/", tags=["Healthcheck"])
 def root():
-    df = get_df()
-    return {
-        "status"     : "ok",
-        "version"    : "1.0.0",
-        "nb_rues"    : len(df),
-        "score_min"  : round(df["itr_score"].min(), 2),
-        "score_max"  : round(df["itr_score"].max(), 2),
-        "score_median": round(df["itr_score"].median(), 2),
-    }
+    """
+    Healthcheck global. Retourne le statut de chaque indicateur disponible.
+    Fonctionne même si certains indicateurs n'ont pas encore été générés.
+    """
+    status = {"status": "ok", "version": "1.0.0", "indicateurs": {}}
+
+    # ITR — optionnel (données collègues)
+    if GOLD_PARQUET.exists():
+        try:
+            df = get_df()
+            status["indicateurs"]["ITR"] = {
+                "disponible"  : True,
+                "nb_rues"     : len(df),
+                "score_median": round(df["itr_score"].median(), 2),
+            }
+        except Exception as e:
+            status["indicateurs"]["ITR"] = {"disponible": False, "erreur": str(e)}
+    else:
+        status["indicateurs"]["ITR"] = {
+            "disponible": False,
+            "message"   : "Lancer python run_pipeline.py --indicateur ITR",
+        }
+
+    # SVP — indicateur de cette branche
+    svp_path = Path("data/gold/gold_SVP/svp_par_point.parquet")
+    if svp_path.exists():
+        try:
+            import pandas as _pd
+            df_svp = _pd.read_parquet(svp_path)
+            status["indicateurs"]["SVP"] = {
+                "disponible"  : True,
+                "nb_points"   : len(df_svp),
+                "score_median": round(df_svp["svp_score"].median(), 2),
+            }
+        except Exception as e:
+            status["indicateurs"]["SVP"] = {"disponible": False, "erreur": str(e)}
+    else:
+        status["indicateurs"]["SVP"] = {
+            "disponible": False,
+            "message"   : "Lancer python run_pipeline.py --indicateur SVP",
+        }
+
+    return status
 
 
 # ──────────────────────────────────────────────

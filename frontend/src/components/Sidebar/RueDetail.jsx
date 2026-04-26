@@ -1,11 +1,11 @@
 import React from 'react'
 
 const LABEL_COLOR = {
-  'Très accessible': '#22c55e',
-  'Accessible':      '#84cc16',
-  'Modéré':          '#eab308',
-  'Tendu':           '#f97316',
-  'Très tendu':      '#ef4444',
+  'Très faible': '#22c55e',
+  'Faible':      '#84cc16',
+  'Modéré':      '#eab308',
+  'Bon':         '#f97316',
+  'Excellent':   '#ef4444',
 }
 
 const Metric = ({ label, value, sub }) => (
@@ -50,7 +50,7 @@ export default function RueDetail({ rue, onClose }) {
         alignItems: 'flex-start',
       }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f2ff', marginBottom: 2 }}>{rue.nom_voie}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f2ff', marginBottom: 2 }}>IRIS {rue.code_iris}</p>
           <p style={{ fontSize: 11, color: '#8b92b8' }}>{rue.code_postal} · {rue.arrondissement}e arrondissement</p>
         </div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#555e80', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
@@ -60,10 +60,10 @@ export default function RueDetail({ rue, onClose }) {
         {/* Score */}
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score ITR</span>
+            <span style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score SVP</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 22, fontWeight: 800, color }}>
-                {rue.itr_score}
+                {rue.svp_score}
               </span>
               <span style={{
                 fontSize: 10, fontWeight: 600, color,
@@ -71,30 +71,30 @@ export default function RueDetail({ rue, onClose }) {
                 border: `1px solid ${color}44`,
                 borderRadius: 20,
                 padding: '2px 8px',
-              }}>{rue.itr_label}</span>
+              }}>{rue.svp_label}</span>
             </div>
           </div>
           <div style={{ height: 6, background: '#2e3348', borderRadius: 3 }}>
-            <div style={{ height: '100%', width: `${rue.itr_score}%`, background: color, borderRadius: 3 }} />
+            <div style={{ height: '100%', width: `${rue.svp_score}%`, background: color, borderRadius: 3 }} />
           </div>
         </div>
 
         {/* Métriques clés */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-          <Metric label="Prix médian" value={`${Math.round(rue.prix_m2_median).toLocaleString('fr-FR')} €`} sub="par m²" />
-          <Metric label="Revenu médian" value={`${Math.round(rue.revenu_median_uc / 1000).toLocaleString('fr-FR')}k €`} sub="par an / UC" />
-          <Metric label="Log. sociaux" value={rue.nb_logements_sociaux > 0 ? rue.nb_logements_sociaux.toLocaleString('fr-FR') : 'Aucun'} sub="dans l'IRIS" />
-          <Metric label="Transactions" value={rue.nb_transactions} sub="ventes en 2021" />
+          <Metric label="Arbres" value={rue.nb_arbres.toLocaleString('fr-FR')} sub="dans le rayon" />
+          <Metric label="Espaces verts" value={rue.nb_espaces_verts.toLocaleString('fr-FR')} sub="dans le rayon" />
+          <Metric label="Score vert" value={`${Math.round(rue.score_vert * 100)}/100`} sub="normalisé" />
+          <Metric label="Score alim." value={`${Math.round(rue.score_acces_alim * 100)}/100`} sub="normalisé" />
         </div>
 
-        {/* Composantes ITR */}
+        {/* Composantes SVP */}
         <div style={{ background: '#1a1d27', borderRadius: 8, padding: '10px 14px' }}>
           <p style={{ fontSize: 11, color: '#555e80', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>
-            Composantes ITR
+            Composantes SVP
           </p>
-          <Component label="Effort d'achat (prix/revenu)" value={(rue.c1_effort || (rue.prix_m2_median / rue.revenu_median_uc)).toFixed(3)} color="#c8cde8" />
-          <Component label="Facteur logement social" value={(rue.c2_logsoc || (1 + 1/(1 + rue.nb_logements_sociaux))).toFixed(3)} color="#c8cde8" />
-          <Component label="Score brut" value={(rue.itr_brut || 0).toFixed(4)} color={color} />
+          <Component label="Score vert (60%)" value={(rue.score_vert || 0).toFixed(3)} color="#c8cde8" />
+          <Component label="Score accès alimentaire (40%)" value={(rue.score_acces_alim || 0).toFixed(3)} color="#c8cde8" />
+          <Component label="Score final" value={(rue.svp_score || 0).toFixed(1)} color={color} />
         </div>
       </div>
     </div>

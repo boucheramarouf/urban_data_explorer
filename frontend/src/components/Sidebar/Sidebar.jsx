@@ -40,10 +40,10 @@ export default function Sidebar({ geojson, stats, filters, onFiltersChange, sele
       {/* Logo / titre */}
       <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #2e3348' }}>
         <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f2ff', letterSpacing: '-0.02em' }}>
-          ITR <span style={{ color: '#6c7dff' }}>Paris</span>
+          SVP <span style={{ color: '#6c7dff' }}>Paris</span>
         </p>
         <p style={{ fontSize: 11, color: '#555e80', marginTop: 2 }}>
-          Indice de Tension Résidentielle · 2021
+          Score de Verdure et Proximité · 2021
         </p>
       </div>
 

@@ -41,11 +41,11 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
         source: 'rues',
         paint: {
           'circle-radius': [
-            'interpolate', ['linear'], ['get', 'nb_transactions'],
-            3, 4, 50, 7, 200, 11,
+            'interpolate', ['linear'], ['get', 'nb_arbres'],
+            0, 4, 10, 7, 50, 11,
           ],
           'circle-color': [
-            'interpolate', ['linear'], ['get', 'itr_score'],
+            'interpolate', ['linear'], ['get', 'svp_score'],
             0,   '#22c55e',
             20,  '#22c55e',
             40,  '#84cc16',
@@ -64,11 +64,11 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
         id: 'rues-highlight',
         type: 'circle',
         source: 'rues',
-        filter: ['==', 'nom_voie', ''],
+        filter: ['==', 'code_iris', ''],
         paint: {
           'circle-radius': [
-            'interpolate', ['linear'], ['get', 'nb_transactions'],
-            3, 7, 50, 11, 200, 16,
+            'interpolate', ['linear'], ['get', 'nb_arbres'],
+            0, 7, 10, 11, 50, 16,
           ],
           'circle-color': '#ffffff',
           'circle-opacity': 0.2,
@@ -82,13 +82,13 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
       map.current.on('mousemove', 'rues-points', (e) => {
         map.current.getCanvas().style.cursor = 'pointer'
         const feature = e.features[0]
-        map.current.setFilter('rues-highlight', ['==', 'nom_voie', feature.properties.nom_voie])
+        map.current.setFilter('rues-highlight', ['==', 'code_iris', feature.properties.code_iris])
         setTooltip({ feature, x: e.originalEvent.clientX, y: e.originalEvent.clientY })
       })
 
       map.current.on('mouseleave', 'rues-points', () => {
         map.current.getCanvas().style.cursor = ''
-        map.current.setFilter('rues-highlight', ['==', 'nom_voie', ''])
+        map.current.setFilter('rues-highlight', ['==', 'code_iris', ''])
         setTooltip({ feature: null, x: 0, y: 0 })
       })
 

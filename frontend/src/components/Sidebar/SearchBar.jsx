@@ -8,7 +8,7 @@ export default function SearchBar({ geojson, onSelectRue }) {
     if (!geojson || query.trim().length < 2) return []
     const q = query.toUpperCase().trim()
     return geojson.features
-      .filter(f => f.properties.nom_voie.includes(q))
+      .filter(f => f.properties.code_iris.includes(q))
       .slice(0, 8)
       .map(f => f.properties)
   }, [query, geojson])

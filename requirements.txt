@@ -9,3 +9,10 @@ numpy>=1.26.0
 # API
 fastapi>=0.110.0
 uvicorn>=0.29.0
+
+# Nouvelles dépendances SVP :
+requests>=2.31.0        # téléchargement API Paris Open Data + Overpass
+
+# Optionnel — uniquement pour le notebook de diagnostic :
+matplotlib>=3.8.0
+jupyter>=1.0.0
