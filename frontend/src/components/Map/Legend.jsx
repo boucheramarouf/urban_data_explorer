@@ -1,4 +1,5 @@
 import React from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const LEVELS = [
   { label: 'Très accessible', color: '#22c55e' },
@@ -8,7 +9,8 @@ const LEVELS = [
   { label: 'Très tendu',      color: '#ef4444' },
 ]
 
-export default function Legend() {
+export default function Legend({ indicator }) {
+  const cfg = getIndicatorConfig(indicator)
   return (
     <div style={{
       position: 'absolute',
@@ -22,7 +24,7 @@ export default function Legend() {
       zIndex: 10,
     }}>
       <p style={{ fontSize: 11, fontWeight: 600, color: '#8b92b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-        Tension résidentielle
+        {cfg.legendTitle}
       </p>
       {LEVELS.map(l => (
         <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

@@ -1,5 +1,6 @@
 import React from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const scoreColor = (score) => {
   if (score <= 20) return '#22c55e'
@@ -9,22 +10,27 @@ const scoreColor = (score) => {
   return '#ef4444'
 }
 
-const CustomTooltip = ({ active, payload }) => {
+const CustomTooltip = ({ active, payload, indicator }) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
+  const cfg = getIndicatorConfig(indicator)
+  const medianKey = `${cfg.key}_score_median`
   return (
     <div style={{ background: '#21253a', border: '1px solid #2e3348', borderRadius: 6, padding: '6px 10px' }}>
       <p style={{ fontSize: 12, color: '#f0f2ff', fontWeight: 600 }}>{d.arrondissement}e arr.</p>
-      <p style={{ fontSize: 11, color: '#8b92b8' }}>Score médian : <b style={{ color: scoreColor(d.itr_score_median) }}>{d.itr_score_median}</b></p>
+      <p style={{ fontSize: 11, color: '#8b92b8' }}>Score médian : <b style={{ color: scoreColor(d[medianKey]) }}>{d[medianKey]}</b></p>
       <p style={{ fontSize: 11, color: '#8b92b8' }}>{d.nb_rues} rues analysées</p>
     </div>
   )
 }
 
-export default function ArrondChart({ data }) {
+export default function ArrondChart({ indicator, data }) {
   if (!data) return null
 
-  const sorted = [...data].sort((a, b) => b.itr_score_median - a.itr_score_median)
+  const cfg = getIndicatorConfig(indicator)
+  const medianKey = `${cfg.key}_score_median`
+
+  const sorted = [...data].sort((a, b) => b[medianKey] - a[medianKey])
 
   return (
     <div>
@@ -41,10 +47,10 @@ export default function ArrondChart({ data }) {
             tickFormatter={v => `${v}e`}
             width={28}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
-          <Bar dataKey="itr_score_median" radius={[0, 3, 3, 0]}>
+          <Tooltip content={<CustomTooltip indicator={indicator} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+          <Bar dataKey={medianKey} radius={[0, 3, 3, 0]}>
             {sorted.map((entry, i) => (
-              <Cell key={i} fill={scoreColor(entry.itr_score_median)} opacity={0.85} />
+              <Cell key={i} fill={scoreColor(entry[medianKey])} opacity={0.85} />
             ))}
           </Bar>
         </BarChart>

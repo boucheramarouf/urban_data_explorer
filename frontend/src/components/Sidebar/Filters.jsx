@@ -1,4 +1,5 @@
 import React from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const ARRONDISSEMENTS = Array.from({ length: 20 }, (_, i) => i + 1)
 const LABELS = ['Très accessible', 'Accessible', 'Modéré', 'Tendu', 'Très tendu']
@@ -36,8 +37,11 @@ const Select = ({ label, value, onChange, children }) => (
   </div>
 )
 
-export default function Filters({ filters, onChange }) {
+export default function Filters({ indicator, filters, onChange }) {
+  const cfg = getIndicatorConfig(indicator)
   const set = (key) => (val) => onChange({ ...filters, [key]: val })
+
+  const hasFilters = filters.arrondissement || filters[cfg.labelField]
 
   return (
     <div style={{ padding: '0 0 4px' }}>
@@ -48,13 +52,13 @@ export default function Filters({ filters, onChange }) {
         ))}
       </Select>
 
-      <Select label="Niveau de tension" value={filters.label || ''} onChange={set('label')}>
+      <Select label="Niveau" value={filters[cfg.labelField] || ''} onChange={set(cfg.labelField)}>
         <option value="">Tous les niveaux</option>
         {LABELS.map(l => <option key={l} value={l}>{l}</option>)}
       </Select>
 
       {/* Reset */}
-      {(filters.arrondissement || filters.label) && (
+      {hasFilters && (
         <button
           onClick={() => onChange({})}
           style={{

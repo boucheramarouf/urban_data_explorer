@@ -1,4 +1,5 @@
 import React from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const LABEL_COLOR = {
   'Très accessible': '#22c55e',
@@ -8,9 +9,12 @@ const LABEL_COLOR = {
   'Très tendu':      '#ef4444',
 }
 
-export default function Tooltip({ feature, x, y }) {
+export default function Tooltip({ indicator, feature, x, y }) {
   if (!feature) return null
   const p = feature.properties
+  const cfg = getIndicatorConfig(indicator)
+  const score = p[cfg.scoreField]
+  const label = p[cfg.labelField]
 
   return (
     <div style={{
@@ -38,30 +42,30 @@ export default function Tooltip({ feature, x, y }) {
       {/* Badge label */}
       <div style={{
         display: 'inline-block',
-        background: LABEL_COLOR[p.itr_label] + '22',
-        border: `1px solid ${LABEL_COLOR[p.itr_label]}55`,
+        background: LABEL_COLOR[label] + '22',
+        border: `1px solid ${LABEL_COLOR[label]}55`,
         borderRadius: 20,
         padding: '2px 10px',
         marginBottom: 10,
       }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: LABEL_COLOR[p.itr_label] }}>
-          {p.itr_label}
+        <span style={{ fontSize: 11, fontWeight: 600, color: LABEL_COLOR[label] }}>
+          {label}
         </span>
       </div>
 
       {/* Score barre */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 11, color: '#8b92b8' }}>Score ITR</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: LABEL_COLOR[p.itr_label] }}>
-            {p.itr_score}/100
+          <span style={{ fontSize: 11, color: '#8b92b8' }}>{cfg.scoreLabel}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: LABEL_COLOR[label] }}>
+            {score}/100
           </span>
         </div>
         <div style={{ height: 4, background: '#2e3348', borderRadius: 2 }}>
           <div style={{
             height: '100%',
-            width: `${p.itr_score}%`,
-            background: LABEL_COLOR[p.itr_label],
+            width: `${score}%`,
+            background: LABEL_COLOR[label],
             borderRadius: 2,
             transition: 'width 0.3s',
           }} />
@@ -72,8 +76,15 @@ export default function Tooltip({ feature, x, y }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
         {[
           { label: 'Prix médian', value: `${Math.round(p.prix_m2_median).toLocaleString('fr-FR')} €/m²` },
-          { label: 'Revenu médian', value: `${Math.round(p.revenu_median_uc).toLocaleString('fr-FR')} €/an` },
-          { label: 'Log. sociaux', value: p.nb_logements_sociaux > 0 ? p.nb_logements_sociaux.toLocaleString('fr-FR') : 'Aucun' },
+          ...(indicator === 'itr'
+            ? [
+                { label: 'Revenu médian', value: `${Math.round(p.revenu_median_uc).toLocaleString('fr-FR')} €/an` },
+                { label: 'Log. sociaux', value: p.nb_logements_sociaux > 0 ? p.nb_logements_sociaux.toLocaleString('fr-FR') : 'Aucun' },
+              ]
+            : [
+                { label: 'Score accessibilité', value: `${p.score_accessibilite || 0}` },
+                { label: 'Lignes métro/bus', value: `${p.nb_lignes_metro || 0} / ${p.nb_lignes_bus || 0}` },
+              ]),
           { label: 'Ventes 2021', value: `${p.nb_transactions} trans.` },
         ].map(item => (
           <div key={item.label}>

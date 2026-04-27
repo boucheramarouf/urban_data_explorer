@@ -31,6 +31,7 @@ from sqlalchemy.exc import SQLAlchemyError
 # ──────────────────────────────────────────────
 
 GOLD_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
+GOLD_GEOJSON_IAML = Path("data/gold/gold_IAML/iaml_par_rue.geojson")
 
 app = FastAPI(
     title="ITR Paris — Indice de Tension Résidentielle",
@@ -83,6 +84,20 @@ def get_df_sql() -> pd.DataFrame:
         prix_m2_median, revenu_median_uc, nb_logements_sociaux,
         nb_transactions, itr_score, itr_label
     FROM itr_par_rue
+    """
+    return pd.read_sql(query, engine)
+
+
+def get_df_sql_iaml() -> pd.DataFrame:
+    query = """
+    SELECT
+        nom_voie, code_postal, arrondissement,
+        lon_centre, lat_centre,
+        prix_m2_median, nb_transactions,
+        nb_lignes_metro, nb_lignes_bus, nb_points_velib,
+        score_accessibilite,
+        iaml_brut, iaml_score, iaml_label
+    FROM iaml_par_rue
     """
     return pd.read_sql(query, engine)
 
@@ -339,5 +354,185 @@ def geojson(
     return JSONResponse(content={
         "type"    : "FeatureCollection",
         "count"   : len(features),
+        "features": features,
+    })
+
+
+# ──────────────────────────────────────────────
+# IAML — Endpoints dedicaces
+# ──────────────────────────────────────────────
+
+@app.get("/iaml/stats", tags=["IAML"])
+def iaml_stats():
+    df = get_df_sql_iaml()
+
+    dist_label = (
+        df["iaml_label"]
+        .value_counts()
+        .reindex(["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"])
+        .fillna(0)
+        .astype(int)
+        .to_dict()
+    )
+
+    by_arrdt = (
+        df.groupby("arrondissement")
+        .agg(
+            nb_rues=("iaml_score", "count"),
+            iaml_score_median=("iaml_score", "median"),
+            prix_m2_median=("prix_m2_median", "median"),
+            score_accessibilite_median=("score_accessibilite", "median"),
+        )
+        .round(2)
+        .reset_index()
+        .sort_values("iaml_score_median", ascending=False)
+        .to_dict(orient="records")
+    )
+
+    return {
+        "nb_rues_total": len(df),
+        "iaml_score_min": round(df["iaml_score"].min(), 2),
+        "iaml_score_max": round(df["iaml_score"].max(), 2),
+        "iaml_score_median": round(df["iaml_score"].median(), 2),
+        "iaml_score_mean": round(df["iaml_score"].mean(), 2),
+        "distribution_label": dist_label,
+        "par_arrondissement": by_arrdt,
+    }
+
+
+@app.get("/iaml/rues", tags=["IAML"])
+def iaml_list_rues(
+    arrondissement: Optional[int] = Query(None, description="Filtrer par arrondissement (1-20)"),
+    label: Optional[str] = Query(None, description="Filtrer par niveau IAML"),
+    score_min: Optional[float] = Query(None, description="Score IAML minimum (0-100)"),
+    score_max: Optional[float] = Query(None, description="Score IAML maximum (0-100)"),
+    sort_by: str = Query("iaml_score", description="Tri : iaml_score, prix_m2_median, score_accessibilite, nb_transactions"),
+    order: str = Query("desc", description="Ordre : asc ou desc"),
+    limit: int = Query(100, ge=1, le=2500, description="Nombre max de résultats"),
+):
+    df = get_df_sql_iaml().copy()
+
+    if arrondissement is not None:
+        df = df[df["arrondissement"] == arrondissement]
+    if label is not None:
+        df = df[df["iaml_label"] == label]
+    if score_min is not None:
+        df = df[df["iaml_score"] >= score_min]
+    if score_max is not None:
+        df = df[df["iaml_score"] <= score_max]
+
+    valid_sort = ["iaml_score", "prix_m2_median", "score_accessibilite", "nb_transactions"]
+    if sort_by not in valid_sort:
+        raise HTTPException(status_code=400, detail=f"sort_by doit être parmi : {valid_sort}")
+
+    ascending = order == "asc"
+    df = df.sort_values(sort_by, ascending=ascending).head(limit)
+
+    cols_out = [
+        "nom_voie", "code_postal", "arrondissement",
+        "lon_centre", "lat_centre",
+        "prix_m2_median", "nb_transactions",
+        "nb_lignes_metro", "nb_lignes_bus", "nb_points_velib",
+        "score_accessibilite", "iaml_score", "iaml_label",
+    ]
+    df = df[[c for c in cols_out if c in df.columns]]
+
+    return {
+        "count": len(df),
+        "filtres": {
+            "arrondissement": arrondissement,
+            "label": label,
+            "score_min": score_min,
+            "score_max": score_max,
+        },
+        "rues": df.to_dict(orient="records"),
+    }
+
+
+@app.get("/iaml/rues/{nom_voie}", tags=["IAML"])
+def iaml_get_rue(
+    nom_voie: str,
+    code_postal: Optional[int] = Query(None, description="Code postal pour lever les ambiguïtés"),
+):
+    df = get_df_sql_iaml()
+
+    mask = df["nom_voie"].str.upper() == nom_voie.upper()
+    if code_postal is not None:
+        mask &= df["code_postal"] == code_postal
+
+    results = df[mask]
+    if results.empty:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Rue '{nom_voie}' introuvable pour IAML. Vérifiez le nom et/ou code_postal.",
+        )
+
+    records = []
+    for _, row in results.iterrows():
+        record = {}
+        for col in df.columns:
+            val = row[col]
+            if pd.isna(val):
+                record[col] = None
+            elif isinstance(val, float):
+                record[col] = round(val, 4)
+            else:
+                record[col] = val
+        records.append(record)
+
+    return {"count": len(records), "results": records}
+
+
+@app.get("/iaml/geojson", tags=["IAML"])
+def iaml_geojson(
+    arrondissement: Optional[int] = Query(None, description="Filtrer par arrondissement"),
+    label: Optional[str] = Query(None, description="Filtrer par niveau IAML"),
+    score_min: Optional[float] = Query(None, description="Score IAML minimum"),
+    score_max: Optional[float] = Query(None, description="Score IAML maximum"),
+):
+    if all(p is None for p in [arrondissement, label, score_min, score_max]):
+        if GOLD_GEOJSON_IAML.exists():
+            with open(GOLD_GEOJSON_IAML, encoding="utf-8") as f:
+                return JSONResponse(content=json.load(f))
+
+    df = get_df_sql_iaml().copy()
+    if arrondissement is not None:
+        df = df[df["arrondissement"] == arrondissement]
+    if label is not None:
+        df = df[df["iaml_label"] == label]
+    if score_min is not None:
+        df = df[df["iaml_score"] >= score_min]
+    if score_max is not None:
+        df = df[df["iaml_score"] <= score_max]
+
+    features = []
+    prop_cols = [c for c in df.columns if c not in ("lon_centre", "lat_centre")]
+
+    for _, row in df.iterrows():
+        props = {}
+        for col in prop_cols:
+            val = row[col]
+            if pd.isna(val):
+                props[col] = None
+            elif isinstance(val, float):
+                props[col] = round(val, 4)
+            else:
+                props[col] = val
+
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    round(float(row["lon_centre"]), 6),
+                    round(float(row["lat_centre"]), 6),
+                ],
+            },
+            "properties": props,
+        })
+
+    return JSONResponse(content={
+        "type": "FeatureCollection",
+        "count": len(features),
         "features": features,
     })

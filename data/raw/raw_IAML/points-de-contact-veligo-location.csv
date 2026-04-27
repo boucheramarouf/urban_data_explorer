@@ -1,0 +1,231 @@
+﻿Nom du site;Code_insee;Departement;Adresse;Code_postal;Commune;Capacité maximum;Compétence location;Compétence information;Retrait pour vélo à assistance électrique;Retrait pour vélo à assistance électrique rallongé;Retrait pour biporteur à assistance électrique;Retrait pour triporteur à assistance électrique;Restitution pour vélo à assistance électrique;Restitution pour vélo à assistance électrique rallongé;Restitution pour biporteur à assistance électrique;Restitution pour triporteur à assistance électrique;Type de site;Nombre  remise;Nombre reprise;x_long;y_lat;Geo Point
+La Poste - Site de Serris;77132;77;9 boulevard Robert Thiboust;77700;SERRIS;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;87;2;2.7918;48.8423;48.8423, 2.7918
+La Poste - Site de Rosny;93064;93;33 Bis rue d'Estienne  d'Orves;93110;ROSNY SOUS BOIS;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;88;4;2.483457;48.870259;48.870259, 2.483457
+Bureau de Poste - Domont;95199;95;38 AVENUE JEAN JAURES;95330;DOMONT;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;46;0;2.334749;49.030678;49.030678, 2.334749
+La Poste POPINCOURT;75111;75;21 Rue BREGUET;75011;PARIS 11;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;442;15;2.375253;48.858146;48.858146, 2.375253
+DECLIC'CYCLO;95480;95;Centre commercial les Arcades - Rue du Général de Gaulle;95620;PARMAIN;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;6;0;2.2040039;49.1039623;49.1039623, 2.2040039
+Samo Coop;94068;94;43 Boulevard de la Marne;94210;ST MAUR DES FOSSES;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;94;0;2.50153404;48.79291601;48.79291601, 2.50153404
+Bureau de Poste - Clamart Centre;92023;92;38 RUE DE MEUDON;92140;CLAMART;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;395;3;2.259219;48.802021;48.802021, 2.259219
+La Poste - Site de Bobigny;93008;93;1 rue Pablo Picasso;93000;BOBIGNY;8;;;;;;;;;;;;362;4;2.449403997;48.90810837;48.90810837, 2.449403997
+Franprix Gouvion;75117;75;25 Boulevard Gouvion Saint Cyr;75017;PARIS 17;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;187;0;2.28571105;48.88133621;48.88133621, 2.28571105
+Vélo Services - Cergy;95127;95;53 rue Francis Combe;95000;CERGY;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;151;4;2.071629;49.045489;49.045489, 2.071629
+Bureau de Poste - Saint-Brice-sous-Forêt;95539;95;14 RUE PASTEUR;95350;ST BRICE SOUS FORET;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;45;0;2.359266;48.999613;48.999613, 2.359266
+Entre Juine et Renarde;91148;91;2 Rue des Hêtres Pourpres;91580;CHAUFFOUR LES ETRECHY;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;20;0;2.204590647;48.49818738;48.49818738, 2.204590647
+Bureau de Poste - Houilles;78311;78;16 AVENUE SCHOELCHER;78800;HOUILLES;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;136;1;2.190799;48.924331;48.924331, 2.190799
+SoliCycle Porte de Vanves;75114;75;1-3 rue Prevost Paradol;75014;PARIS 14;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;306;10;2.308567;48.826404;48.826404, 2.308567
+Bureau de Poste - Rosny-sous-Bois Principal;93064;93;60 RUE JEAN PIERRE TIMBAUD;93110;ROSNY SOUS BOIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;145;2;2.484478;48.870819;48.870819, 2.484478
+ETAMPES;91109;91;9 PLACE DE L HOTEL DE VILLE;91150;ETAMPES;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;37;2;2.161834;48.434257;48.434257, 2.161834
+La Poste - Site de Melun;77255;77;210 avenue Georges Clemenceau;77000;VAUX LE PENIL;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;126;6;2.661601;48.54839;48.54839, 2.661601
+Décathlon - Varennes sur Seine;77061;77;Centre Commercial Du Breau, Rue du Bréau;77130;VARENNES SUR SEINE;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;12;1;2.94918;48.36099;48.36099, 2.94918
+La Poste - Site de Viry;91687;91;12 rue Henri Barbusse;91170;VIRY CHATILLON;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;125;7;2.3754;48.6723;48.6723, 2.3754
+Atelier de la Villette;75119;75;62 RUE PETIT;75019;PARIS 19;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1028;0;2.386584619;48.88589614;48.88589614, 2.386584619
+Décathlon - Cesson Bois Senart Melun Savigny;77447;77;212 Rue de l'Industrie;77240;CESSON;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;51;4;2.595;48.59296;48.59296, 2.595
+La Poste - Site de Fontenay;78242;78;Rue Georges Besse;78330;FONTENAY LE FLEURY;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;69;6;2.0382;48.8105;48.8105, 2.0382
+La Poste - Site de Boissy St Leger;94004;94;Place du Forum;94470;BOISSY ST LEGER;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;116;6;2.5024;48.7541;48.7541, 2.5024
+Bureau de Poste - La Ville du Bois;91665;91;7 RUE DU GRAND NOYER;91620;LA VILLE DU BOIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;21;0;2.268382;48.660906;48.660906, 2.268382
+Bureau de Poste - Moissy-Cramayel;77253;77;321 AVENUE PHILIPPE BUR;77550;MOISSY CRAMAYEL;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;15;1;2.5887;48.62657;48.62657, 2.5887
+Bureau de Poste - Paris Wagram;75117;75;110 AVENUE DE WAGRAM;75017;PARIS 17;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;454;7;2.302232;48.883335;48.883335, 2.302232
+Parking Transdev Park -  Courbevoie Jacques Cartier;92026;92;36 avenue Léonard de Vinci;92400;COURBEVOIE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;220;5;2.236849;48.89685;48.89685, 2.236849
+Franprix Henri Janin;94078;94;2 rue Henri Janin;94190;Villeneuve Saint Georges;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;30;0;2.449053764;48.7309761;48.7309761, 2.449053764
+Bureau de Poste - Gif-sur-Yvette;91538;91;29 RUE HENRI AMODRU;91190;GIF SUR YVETTE;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;101;2;2.132305;48.702087;48.702087, 2.132305
+La Poste - Site de Milly la Forêt;91408;91;rue du Chenet;91490;MOIGNY SUR ECOLE;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;10;1;2.417321;48.397857;48.397857, 2.417321
+ZERIDE SEBASTOPOL CARGO;75102;75;111 boulevard sebastopol;75002;PARIS 02;3;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;353;0;2.352735956;48.86714609;48.86714609, 2.352735956
+La Poste LA VILLETTE;75118;75;18 BOULEVARD DE LA CHAPELLE;75018;PARIS 18;25;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1414;42;2.36258;48.884539;48.884539, 2.36258
+La Poste - Site de Persan;95199;95;26 Rue Brossolette;95330;PERSAN;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;4;0;2.33649;49.029548;49.029548, 2.33649
+Bureau de Poste - Mennecy;91244;91;63 B BOULEVARD CHARLES DE GAULLE;91540;MENNECY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;31;0;2.430712;48.562871;48.562871, 2.430712
+ORSAY;91471;91;24 RUE DE PARIS;91400;ORSAY;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;50;6;2.187731;48.697614;48.697614, 2.187731
+Décathlon - Evry;91228;91;2 boulevard de l'Europe Centre commercial de l'agora;91000;EVRY;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;143;0;2.4278;48.6279;48.6279, 2.4278
+Bureau de Poste - Velizy-Villacoublay Le Mail;78640;78;3 RUE PAULHAN;78140;VELIZY VILLACOUBLAY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;134;7;2.181013;48.785018;48.785018, 2.181013
+Franprix Antony - rue Monnet;92002;92;61 Avenue Jean Monnet;92160;ANTONY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;16;0;2.2970513;48.7464483;48.7464483, 2.2970513
+Franprix Orsay Someho;91471;91;2 rue du Docteur Ernest Lauriat;91400;ORSAY;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;115;0;2.187988997;48.69682312;48.69682312, 2.187988997
+La Poste - Site de Bry sur Marne;94015;94;6 rue du Clos Sainte Catherine;94360;BRY SUR MARNE;9;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;41;3;2.524548;48.829547;48.829547, 2.524548
+La Poste - Site de St Denis;93066;93;50 Avenue du Président Wilson;93210;SAINT DENIS;18;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;366;4;2.357899;48.91319;48.91319, 2.357899
+Bureau de Poste - Ozoir-la-Ferrière;77350;77;6 AVENUE EDOUARD GOURDON;77330;OZOIR LA FERRIERE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;28;0;2.678368;48.773041;48.773041, 2.678368
+Bureau de Poste - Pontault-Combault;77373;77;3 AVENUE CHARLES ROUXEL;77340;PONTAULT COMBAULT;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;72;0;2.605219;48.798345;48.798345, 2.605219
+Bureau de Poste - Saint-Germain-en-Laye Centre;78551;78;10 B RUE DE POLOGNE;78100;ST GERMAIN EN LAYE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;169;10;2.089737;48.897278;48.897278, 2.089737
+La Poste - Site de St Fargeau Ponthierry;77040;77;2 Place du General Leclerc;77310;ST FARGEAU PONTHIERRY;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;15;0;2.5451;48.5314;48.5314, 2.5451
+La Poste - Site de Noisy le Grand;93051;93;1 rue Leon Bernard;93160;NOISY LE GRAND;13;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;134;1;2.552838;48.849251;48.849251, 2.552838
+ECOLOCATION 77;77156;77;5 Rue du Docteur Dumée;77140;DARVAULT;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;11;0;2.695924726;48.26780068;48.26780068, 2.695924726
+Parking Transdev Park - Asnières sur Seine;92004;92;Hôtel de Ville 2 place Aristide Briand;92600;ASNIERES SUR SEINE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;450;6;2.28877;48.910846;48.910846, 2.28877
+La Poste - Site d'Avon;77442;77;22 avenue Franklin Roosevelt;77210;AVON;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;79;4;2.7169;48.4145;48.4145, 2.7169
+Décathlon - Velizy;78640;78;2 Avenue De L'Europe Centre Commercial;78140;VELIZY VILLACOUBLAY;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;147;12;2.21917;48.78429;48.78429, 2.21917
+ESAT Léopold Bellan - Paris 13;75113;75;5 rue Jean-Sébastien Bach;75013;PARIS 13;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;567;18;2.365325;48.830694;48.830694, 2.365325
+Franprix Disalor;75120;75;54 rue de Belgrand;75020;PARIS 20;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;76;0;2.406471632;48.8691388;48.8691388, 2.406471632
+M2IE;77258;77;Parc du Courcerin - ZAC PARIS EST - 73/75 Boulevard Courcerin - BAT B7;77185;LOGNES;20;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;50;0;2.618800402;48.82535553;48.82535553, 2.618800402
+Atelier de la Villette;75119;75;62 RUE PETIT;75019;PARIS 19;6;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;315;0;2.386584619;48.88589614;48.88589614, 2.386584619
+Bicyclo La Maison du Vélo - Saint Denis;93066;93;120 rue Gabriel Peri;93200;SAINT DENIS;3;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;52;0;2.356656;48.940897;48.940897, 2.356656
+Recyclerie Sportive - Gare Massy Palaiseau;91377;91;Gare de Massy Palaiseau, Place Pierre Semard;91300;MASSY;2;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;78;0;2.261952;48.72567;48.72567, 2.261952
+La Poste - Site de Rungis;94021;94;22 rue du Séminaire;94550;CHEVILLY LARUE;23;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;198;5;2.362133;48.761856;48.761856, 2.362133
+Décathlon - Paris Rive Gauche;75113;75;113 Avenue de France;75013;PARIS 13;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;585;35;2.37662;48.83029;48.83029, 2.37662
+Morangis bp;91432;91;PLACE PIERRE BROSSOLETTE;91420;MORANGIS;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;90;2;2.331006;48.704732;48.704732, 2.331006
+Mairie - Deuil La Barre;95197;95;Place Nieder Eschbach;95170;DEUIL LA BARRE;3;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;44;0;2.3238872;48.9752104;48.9752104, 2.3238872
+La Poste PARIS 14;75114;75;115 BOULEVARD BRUNE;75014;PARIS 14;30;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1549;39;2.316275;48.82546;48.82546, 2.316275
+La Poste - Site de Villejuif;94076;94;5 rue marcel paul;94800;VILLEJUIF;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;405;11;2.3569;48.8001;48.8001, 2.3569
+La Poste - Site de Draveil;91201;91;1 rue de l'Industrie;91210;DRAVEIL;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;95;2;2.411298;48.688348;48.688348, 2.411298
+La Poste - Site de Ris Orangis;91521;91;Place du Moulin à vent;91130;RIS ORANGIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;53;3;2.407771;48.649298;48.649298, 2.407771
+La Boutique du Vélo;78502;78;16q avenue Simon Vouet;78560;LE PORT MARLY;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;84;0;2.11064;48.87934;48.87934, 2.11064
+Parking Transdev Park -  Rambouillet Gare - Séquoia;78164;78;Place Ferdinand Prud'homme;78120;RAMBOUILLET;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;29;3;1.830677;48.64383;48.64383, 1.830677
+Franprix Rue de l'Amiral Mouchez;75114;75;94 Rue de l'Amiral Mouchez;75014;PARIS 14;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;308;0;2.343700956;48.82041654;48.82041654, 2.343700956
+MONTLHERY;91339;91;3 RUE ERNEST CHESNEAU;91310;MONTLHERY;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;28;0;2.271493;48.640213;48.640213, 2.271493
+La Poste - Site d'Yerres;91691;91;6 rue Rossini;91330;YERRES;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;162;3;2.481393;48.703628;48.703628, 2.481393
+La Poste - Site de traitement courrier de Montreuil sous Bois;93048;93;6 rue Ariste Hemard;93100;MONTREUIL SOUS BOIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;473;6;2.4274;48.8597;48.8597, 2.4274
+Vélostation SQY;78423;78;1ter place Charles de Gaulle;78180;MONTIGNY LE BRETONNEUX;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;216;21;2.045062;48.786426;48.786426, 2.045062
+Décathlon - Villebon sur Yvette;91661;91;Centre Commercial Villebon, 2 Avenue de la Plesse;91140;VILLEBON SUR YVETTE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;64;8;2.25357;48.70279;48.70279, 2.25357
+Décathlon - Claye Souilly;77118;77;Autoroute A104, A1, Et, N3, Rue Victor Drouet;77410;CLAYE SOUILLY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;39;3;2.67273;48.94948;48.94948, 2.67273
+La Poste - Site du Chesnay;78158;78;17 Rue Pottier;78150;LE CHESNAY ROCQUENCOURT;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;339;4;2.125574;48.827264;48.827264, 2.125574
+La Poste - Site de Clombes;92025;92;10 Rue du 8 Mai 1945;92700;COLOMBES;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;203;11;2.25882;48.922025;48.922025, 2.25882
+Bureau de Poste - Le Perreux-sur-Marne;94058;94;101 AVENUE GEORGES CLEMENCEAU;94170;LE PERREUX SUR MARNE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;205;10;2.503693;48.842473;48.842473, 2.503693
+VELO VELO;75112;75;41 rue de Lyon;75012;PARIS 12;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;228;0;2.370736232;48.8488176;48.8488176, 2.370736232
+FRANPRIX PLACE D'ALIGRE PARIS 12;75112;75;13 PLACE D'ALIGRE;75012;PARIS 12;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;317;0;2.378697925;48.84921084;48.84921084, 2.378697925
+La Poste - Site de Sartrouville;78586;78;Place Alexandre Dumas;78500;SARTROUVILLE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;100;3;2.190487;48.943763;48.943763, 2.190487
+La Poste - Site d'Aubergenville;78451;78;ZAC des Chevries Rue des Chevries;78410;AUBERGENVILLE;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;30;2;1.855214;48.969306;48.969306, 1.855214
+Bureau de Poste - Dourdan;91200;91;7 RUE DU FAUBOURG DE CHARTRES;91410;DOURDAN;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;25;2;2.009588;48.531764;48.531764, 2.009588
+Décathlon - L Isle Adam;95313;95;Zac Du Pont Des Rayons;95290;L'ISLE ADAM;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;39;4;2.24942;49.12566;49.12566, 2.24942
+FRANPRIX BOULEVARD DE BRANDEBOURG;94041;94;15-25 boulevard de Brandebourg;94200;IVRY SUR SEINE;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;161;0;2.400098815;48.81496279;48.81496279, 2.400098815
+La Poste BOURSEUL;75115;75;6 rue françois bonvin;75015;PARIS 15;25;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1320;29;2.305012;48.845768;48.845768, 2.305012
+Franprix Camillle Dugast;92004;92;5/7 Mail Camille Dugast;92600;ASNIERES SUR SEINE;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;63;0;2.317149639;48.91748047;48.91748047, 2.317149639
+Bureau de Poste - Paris Archives;75103;75;67 RUE DES ARCHIVES;75003;PARIS 03;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;496;18;2.359659;48.862567;48.862567, 2.359659
+La Poste SAINT-LAZARE;75108;75;1 RUE DE BERNE;75008;PARIS 08;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1325;28;2.323853;48.880128;48.880128, 2.323853
+La Poste - Site de Nangis;77098;77;11 rue des Aubepines;77370;NANGIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;10;1;3.025554;48.555623;48.555623, 3.025554
+La Poste - Site de Montigny;78423;78;3 Avenue des Ormeaux;78180;MONTIGNY LE BRETONNEUX;30;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;67;2;2.03405;48.7664;48.7664, 2.03405
+Bureau de Poste - Noisy-le-Sec Principal;93053;93;6 B AVENUE GEORGES CLEMENCEAU;93130;NOISY LE SEC;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;247;1;2.457317;48.894725;48.894725, 2.457317
+Bureau de Poste - Chatou;78146;78;1 RUE DES DIX SEPT;78400;CHATOU;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;245;3;2.157791;48.890538;48.890538, 2.157791
+Bureau de Poste - Gonesse Principal;95277;95;PLACE JEAN JAURES;95500;GONESSE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;46;0;2.439462;48.985112;48.985112, 2.439462
+LES MUREAUX;78140;78;42 RUE PAUL DOUMER;78130;LES MUREAUX;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;47;4;1.910245;48.994253;48.994253, 1.910245
+Franprix COLDIS;91477;91;17 avenue de la Vauve;91120;PALAISEAU;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;68;0;2.194125414;48.71284103;48.71284103, 2.194125414
+Bureau de Poste - Antony Leclerc;92002;92;179 AV DE LA DIVISION LECLERC;92160;ANTONY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;136;0;2.302498;48.739975;48.739975, 2.302498
+BRUNOY;91097;91;2 RUE DE LA POSTE;91800;BRUNOY;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;23;2;2.503622;48.696614;48.696614, 2.503622
+La Poste - Site de Taverny;95607;95;139 Rue d'Herblay;95150;TAVERNY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;68;4;2.210915;49.017527;49.017527, 2.210915
+La Poste - Site de Mantes la Jolie;78082;78;ZAC Sully 7 Rue Costes et Bellonte;78200;MANTES LA JOLIE;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;73;1;1.674941;49.000336;49.000336, 1.674941
+La Poste - Site de Chatillon;92020;92;12 boulevard de Vanves;92320;CHATILLON;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;909;49;2.287985;48.804714;48.804714, 2.287985
+YERRES;91691;91;40 RUE CHARLES DE GAULLE;91330;YERRES;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;162;3;2.490451;48.716308;48.716308, 2.490451
+La Poste - Site d'Orly;94054;94;16 rue du Commerce;94310;ORLY;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;122;3;2.399742;48.74323;48.74323, 2.399742
+Décathlon - Plaisir;78490;78;70 Rue Henri Barbusse;78370;PLAISIR;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;132;24;1.96652;48.82915;48.82915, 1.96652
+MAGNY LES HAMEAUX;78356;78;4 PLACE PIERRE BEREGOVOY;78114;MAGNY LES HAMEAUX;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;12;4;2.083743;48.724204;48.724204, 2.083743
+Franprix FRATEM;92025;92;17 Boulevard de Finlande;92700;Colombes;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;88;0;2.258094788;48.93141174;48.93141174, 2.258094788
+Bureau de Poste - Paris Picpus;75112;75;65 RUE DU RENDEZ VOUS;75012;PARIS 12;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;364;8;2.40119;48.846494;48.846494, 2.40119
+La Poste - Site de Boulogne Billancourt;92012;92;231 Allée du Forum;92100;BOULOGNE BILLANCOURT;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;441;23;2.23236;48.829052;48.829052, 2.23236
+Bureau de Poste - Lagny-sur-Marne;77243;77;106 RUE SAINT DENIS;77400;LAGNY SUR MARNE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;115;3;2.707906;48.878985;48.878985, 2.707906
+Bureau de Poste - Aubergenville;78451;78;3 AVENUE DE LA DIVISION LECLERC;78410;AUBERGENVILLE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;36;0;1.855389;48.95868;48.95868, 1.855389
+Bureau de Poste - Meaux Principal;77276;77;5 QUAI JACQUES PREVERT;77100;MEAUX;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;75;2;2.882271;48.957196;48.957196, 2.882271
+LOCAL GARE AULNAY-SOUS-BOIS;93005;93;3 rue du 11 novembre, au parking à vélo;93600;AULNAY-SOUS-BOIS;3;Oui;Oui;Non;Non;Oui;Oui;Non;Non;Non;Non;PDL physique;19;1;2.49385;48.932361;48.932361, 2.49385
+La Poste - Site de Nemours;77156;77;8 quai des tanneurs;77140;NEMOURS;13;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;24;0;2.699;48.2663;48.2663, 2.699
+Décathlon - Coignières;78168;78;Zone commerciale Le Forum - Rue des frères Lumière;78310;COIGNIERES;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;34;4;1.93511;48.75781;48.75781, 1.93511
+La Poste - Site de Romainville;93063;93;31 rue de la Republique;93230;ROMAINVILLE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;416;16;2.4398;48.8821;48.8821, 2.4398
+La Poste - Site de Villeneuve Saint Georges;94078;94;11 rue Henri Leduc;94190;VILLENEUVE ST GEORGES;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;93;11;2.447828;48.731627;48.731627, 2.447828
+LONGJUMEAU;91136;91;9 RUE DE L HOTEL DES POSTES;91160;LONGJUMEAU;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;96;4;2.295199;48.693359;48.693359, 2.295199
+Bureau de Poste - Poissy l'Octroi;78498;78;133 RUE DU GENERAL DE GAULLE;78300;POISSY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;62;5;2.045396;48.927755;48.927755, 2.045396
+Décathlon - Sainte Genevieve;91685;91;Zone Industrielle De La Croix Blanche;91700;VILLIERS SUR ORGE;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;25;3;2.34655;48.62499;48.62499, 2.34655
+DAMMARTIN EN GOELE;77153;77;2 AVENUE DU MARECHAL LECLERC;77230;DAMMARTIN EN GOELE;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;4;0;2.685839;49.053509;49.053509, 2.685839
+Bureau de Poste - Paris Soult;75112;75;137 BOULEVARD SOULT;75012;PARIS 12;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;250;0;2.410564;48.846168;48.846168, 2.410564
+JUPPITER, Vélo & Thé gourmand;95219;95;3 bis Rue Saint-Flaive Prolongée;95120;ERMONT;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;10;0;2.260717;48.99022868;48.99022868, 2.260717
+La Poste - Site de Courtaboeuf;91275;91;8 avenue de l'Atlantique;91940;LES ULIS;13;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;16;1;2.199044;48.681222;48.681222, 2.199044
+La Poste - Site de St Ouen l'Aumone Méry;95572;95;21 Avenue des Gros Chevaux;95310;SAINT OUEN L'AUMONE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;46;2;2.143723;49.050913;49.050913, 2.143723
+La Poste - Site du Perray en Yvelines;78030;78;ZAC du Chemin Vert 7 Allée Haphleries;78610;LE PERRAY EN YVELINES;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;8;0;1.855052;48.703367;48.703367, 1.855052
+Décathlon - Groslay Sarcelles;95288;95;46 Avenue de la République;95410;GROSLAY;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;113;6;2.35963;48.98504;48.98504, 2.35963
+Mairie Fontenay Tresigny;77192;77;10 bis Avenue de Verdun;77610;FONTENAY TRESIGNY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;13;0;2.8776959;48.7050233;48.7050233, 2.8776959
+M2IE;77258;77;Parc du Courcerin - ZAC PARIS EST - 73/75 Boulevard Courcerin - BAT B7;77185;LOGNES;30;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;30;3;2.618800402;48.82535553;48.82535553, 2.618800402
+Franprix Rue Des Vallées;92025;92;17 rue des Vallées;92700;Colombes;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;165;0;2.257732153;48.91509628;48.91509628, 2.257732153
+FLEETER;92012;92;11 Avenue Ferdinand Buisson;92100;BOULOGNE BILLANCOURT;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;323;13;2.254340285;48.8358546;48.8358546, 2.254340285
+FRANPRIX LOURMEL PARIS 15;75115;75;32 rue de Lourmel;75015;PARIS 15;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;433;0;2.29045584;48.84885304;48.84885304, 2.29045584
+Bureau de Poste - Paris Trocadéro;75116;75;51 RUE DE LONGCHAMP;75116;PARIS 16;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;224;4;2.287224;48.865088;48.865088, 2.287224
+SoliCycle Les Ulis;91275;91;9 Résidences Chanteraine;91940;LES ULIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;51;2;2.177393;48.68308;48.68308, 2.177393
+Repair and Run Paris Etoile;75117;75;1 rue de l'arc de Triomphe;75017;PARIS 17;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;198;0;2.294133323;48.87641441;48.87641441, 2.294133323
+La Poste Nanterre Rueil;;92;95 Boulevard de la Seine;92012;Nanterre;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;135;0;2.194341805;48.90366371;48.90366371, 2.194341805
+La Poste - Site de St Maur;94068;94;46 avenue Foch;94100;ST MAUR DES FOSSES;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;412;18;2.491293;48.802526;48.802526, 2.491293
+Décathlon - Meaux;77143;77;5 Avenue Roland Moreno;77124;CHAUCONIN-NEUFMONTIERS;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;17;1;2.86284;48.95895;48.95895, 2.86284
+Bureau de Poste - Bry-sur-Marne;94015;94;12 BOULEVARD DU GENERAL GALLIENI;94360;BRY SUR MARNE;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;42;0;2.522301;48.841093;48.841093, 2.522301
+La Poste - Site d'Ermont;95219;95;Rue du Centre Berlioz Technique;95120;ERMONT;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;144;3;2.244469;48.991616;48.991616, 2.244469
+La Poste - Site d'Etampes;91109;91;9 rue du Peray;91150;ETAMPES;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;37;2;2.1692;48.4334;48.4334, 2.1692
+FRANPRIX LISER PAVILLON SOUS BOIS;93057;93;7 ALLEE ROBILLARD;93320;PAVILLON SOUS BOIS;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;222;0;2.505624597;48.90490253;48.90490253, 2.505624597
+VELEOS;78498;78;20 avenue du Cep;78300;POISSY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;105;0;2.040953855;48.92921981;48.92921981, 2.040953855
+Vélostation SQY;78423;78;1ter place Charles de Gaulle;78180;MONTIGNY LE BRETONNEUX;3;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;77;0;2.045062;48.786426;48.786426, 2.045062
+Monoprix Beaugrenelle;75115;75;19 rue Linois;75015;PARIS 15;5;Oui;Non;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;484;0;2.283792069;48.84879527;48.84879527, 2.283792069
+La Poste RENAUDES;75117;75;27 RUE DES RENAUDES;75017;PARIS 17;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;537;7;2.298133;48.880437;48.880437, 2.298133
+La Poste - Site de Courcouronnes;91182;91;1 rue Maryse Bastié;91080;COURCOURONNES;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;46;1;2.410307;48.626784;48.626784, 2.410307
+La Poste - Site de Longjumeau;91136;91;9 rue de l'hôtel des Postes;91160;LONGJUMEAU;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;96;4;2.2955;48.6934;48.6934, 2.2955
+La Poste - Site de Massy;91377;91;Place de France;91300;MASSY;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;206;10;2.29;48.7328;48.7328, 2.29
+La Poste - Site de Coulommiers;77281;77;11 rue Salomon de Brosse;77120;COULOMMIERS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;25;1;3.0888;48.8091;48.8091, 3.0888
+La Poste - Site de Mareuil les Meaux;77276;77;650 rue des Madeleines;77100;MAREUIL LES MEAUX;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;7;1;2.875115;48.937806;48.937806, 2.875115
+La Poste - Site de Meudon la Forêt;92048;92;1 Rue de la Poste;92360;MEUDON;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;88;7;2.228556;48.786931;48.786931, 2.228556
+FRANPRIX SATDIS;78646;78;Centre Commercial du Camp de Satory, route des docks;78000;VERSAILLES;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;15;0;2.118194842;48.78458585;48.78458585, 2.118194842
+SoliCycle Bezons;95063;95;3 rue Robert Branchard;95870;BEZONS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;128;2;2.21967034;48.92442466;48.92442466, 2.21967034
+La Boutique du Vélo;78502;78;16q avenue Simon Vouet;78560;LE PORT MARLY;4;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;6;0;2.11064;48.87934;48.87934, 2.11064
+La Poste - Site de Fontenay sous Bois;94033;94;30 rue Guérin Leroux;94120;FONTENAY SOUS BOIS;13;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;619;21;2.475313;48.849355;48.849355, 2.475313
+La Poste - Site de Moissy Cramayel;77253;77;2 rue de la Motte;77550;MOISSY CRAMAYEL;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;36;0;2.5707;48.6314;48.6314, 2.5707
+Cycles Richard 77;77276;77;50 rue des Madeleines;77100;MAREUIL LES MEAUX;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;17;0;2.875001;48.940601;48.940601, 2.875001
+La Poste PYRENEES;75120;75;250 RUE DES PYRENEES;75020;PARIS 20;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1701;42;2.395708;48.868659;48.868659, 2.395708
+La Poste - Site de Versailles;78646;78;50 Rue Molière;78000;VERSAILLES;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;328;12;2.150755;48.792644;48.792644, 2.150755
+Bureau de Poste - Cormeilles-en-Parisis;95176;95;30 AVENUE FOCH;95240;CORMEILLES EN PARISIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;87;4;2.196731;48.971228;48.971228, 2.196731
+La Poste - Site de L'Isle Adam;95313;95;1 Bd Napoléon 1er;95290;L'ISLE ADAM;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;9;0;2.24272;49.12743;49.12743, 2.24272
+La Poste - Site d'Eragny;95218;95;75 Avenue du Gros Chêne;95610;ERAGNY SUR OISE;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;39;2;2.114986;49.023287;49.023287, 2.114986
+La Poste - Site d'Ivry;94041;94;47 bis rue Ernest Renan;94200;IVRY SUR SEINE;13;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;568;14;2.4015;48.8067;48.8067, 2.4015
+Décathlon - Mantes Buchelay;78082;78;Zone D´Activités Commerciales Les Closeaux 2000;78200;BUCHELAY;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;94;3;1.67351;48.98863;48.98863, 1.67351
+La Poste - Site de Neuilly sur Seine;92051;92;149 Bd Bineau;92200;NEUILLY SUR SEINE;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;396;15;2.27082;48.890106;48.890106, 2.27082
+La Poste - Site de Croissy;78190;78;2 Allée de Giverny;78290;CROISSY SUR SEINE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;100;3;2.123868;48.875935;48.875935, 2.123868
+DRAVEIL;91201;91;3 RUE DU DOCTEUR FRANCOIS;91210;DRAVEIL;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;95;2;2.411279;48.686132;48.686132, 2.411279
+Place des services - Chatillon;92020;92;13 Place Jean Mermoz;92320;Chatillon;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;197;0;2.29075;48.80972;48.80972, 2.29075
+Recyclerie Sportive - Gare Massy Palaiseau;91377;91;Gare de Massy Palaiseau, Place Pierre Semard;91300;MASSY;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;186;23;2.261952;48.72567;48.72567, 2.261952
+FRANPRIX RUNGIS;94065;94;1 rue Traversière;94150;RUNGIS;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;29;0;2.35268143;48.74637116;48.74637116, 2.35268143
+Bureau de Poste - Gagny Principal;93032;93;8 PLACE DU GENERAL DE GAULLE;93220;GAGNY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;149;1;2.535085;48.884685;48.884685, 2.535085
+Repair and run Paris Gare De Lyon;75112;75;Place Henri Frenay;75012;PARIS 12;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;48;0;2.376550748;48.84492858;48.84492858, 2.376550748
+Franprix SOGEMS;92040;92;54 rue Erevan;92130;ISSY LES MOULINEAUX;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;137;0;2.261351347;48.81899643;48.81899643, 2.261351347
+La Poste - Site de Pavillons sous Bois;93005;93;3 rue Charles Gouppy;93600;AULNAY SOUS BOIS;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;50;1;2.328514;48.953739;48.953739, 2.328514
+La Poste - Site de Neuilly Plaisance;93049;93;6 Rue Marcel DASSAULT;93360;NEUILLY PLAISANCE;9;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;164;9;2.516656;48.865509;48.865509, 2.516656
+Bureau de Poste - Montfermeil;93047;93;3 AVENUE DES PECHES;93370;MONTFERMEIL;0;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;4;0;2.560613;48.899134;48.899134, 2.560613
+La Poste Maisons Laffitte;78396;78;16 RUE JEAN MERMOZ;78600;MAISONS LAFFITTE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;85;3;2.144485;48.946423;48.946423, 2.144485
+FRANPRIX FL-DISTRIBUTION;75114;75;171 rue d'alésia;75014;PARIS 14;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;113;0;2.317328727;48.8328229;48.8328229, 2.317328727
+La Poste - Site de Magny en Vexin;95166;95;23 Rue Gutenberg;95420;MAGNY EN VEXIN;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;3;0;1.782069;49.147928;49.147928, 1.782069
+MEUDON LA FORET;92048;92;1 RUE DE LA POSTE;92360;MEUDON LA FORET;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;88;7;2.228556;48.786931;48.786931, 2.228556
+Bureau de Poste - Bonneuil-sur-Marne;94011;94;11 RUE D ESTIENNE D ORVES;94380;BONNEUIL SUR MARNE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;101;10;2.48778;48.774572;48.774572, 2.48778
+Franprix Rue des Petites Ecuries;75110;75;7/9 Rue des Petites Ecuries;75010;PARIS 10;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;306;0;2.352834463;48.87332153;48.87332153, 2.352834463
+La Poste - Site d'Antony;92002;92;32 Rue Auguste Mounie;92160;ANTONY;30;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;1026;68;2.302593;48.754497;48.754497, 2.302593
+FRANPRIX DIDEROT PARIS12;75112;75;142 BOULEVARD DIDEROT;75012;PARIS 12;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;220;0;2.389043331;48.8476181;48.8476181, 2.389043331
+La Poste - Site de Chaumes en Brie;77007;77;5 chemin des cantines;77390;CHAUMES EN BRIE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;14;1;2.819805;48.649618;48.649618, 2.819805
+La Poste - Site d'Ecuelles;77316;77;rue simone michel levy;77250;MORET LOING ET ORVANNE;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;31;2;2.830985;48.369802;48.369802, 2.830985
+Décathlon - Chambourcy;78133;78;80 Route de Mantes;78240;CHAMBOURCY;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;112;16;2.03399;48.91098;48.91098, 2.03399
+ZERIDE SEBASTOPOL;75102;75;111 boulevard sebastopol;75002;PARIS 02;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;201;0;2.352714498;48.86715314;48.86715314, 2.352714498
+Association Avissahel;93070;93;8 rue Moutier;93400;ST OUEN;8;Oui;Non;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;29;0;2.331656;48.918301;48.918301, 2.331656
+La Poste MONTMARTRE;75118;75;19 RUE DUC;75018;PARIS 18;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;948;21;2.341885;48.892331;48.892331, 2.341885
+Décathlon - Bry sur Marne;94015;94;19 Bis, Rue Jean Monnet Centre Commercial Les Armoiries;94360;BRY SUR MARNE;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;236;19;2.53065;48.82933;48.82933, 2.53065
+RIS ORANGIS;91521;91;PLACE DU MOULIN A VENT;91130;RIS ORANGIS;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;53;3;2.407771;48.649298;48.649298, 2.407771
+La Poste - Site de Dammartin en Goële;77153;77;4 rue Clement Ader;77230;DAMMARTIN EN GOELE;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;4;0;2.701861;49.062453;49.062453, 2.701861
+Villetaneuse bp;93079;93;7 RUE DU 19 MARS 1962;93430;VILLETANEUSE;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;145;3;2.343376;48.962259;48.962259, 2.343376
+La Poste - Site de Creteil;94028;94;50 avenue de la France libre;94000;CRETEIL;6;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;215;13;2.4549;48.7779;48.7779, 2.4549
+Repair and Run Paris gare de l’est;75110;75;89 rue du faubourg st Martin;75010;PARIS 10;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;512;0;2.35768574;48.87311681;48.87311681, 2.35768574
+Décathlon - Thiais;94073;94;3 Rue de la Résistance;94320;THIAIS;2;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;126;7;2.38794;48.75952;48.75952, 2.38794
+La Poste - Site de La Norville;91021;91;3 route de Marolles;91290;LA NORVILLE;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;46;1;2.260146;48.576898;48.576898, 2.260146
+La Poste - Site de Groslay;95288;95;13 Rue des Ecricrolles;95410;GROSLAY;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;21;0;2.358481;48.987985;48.987985, 2.358481
+La Poste REUILLY;75112;75;32 RUE ERARD;75012;PARIS 12;20;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;338;0;2.3868;48.846635;48.846635, 2.3868
+La Poste - Site de Velizy;78640;78;8/10 Rue des Frêres Caudron;78140;VELIZY;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;22;0;2.214052;48.781035;48.781035, 2.214052
+FRANPRIX RUE DE MONTREUIL PARIS11;75111;75;63 RUE DE MONTREUIL;75011;PARIS 11;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;469;0;2.389425755;48.85044861;48.85044861, 2.389425755
+Franprix MINIMARCHE FOSSES;95580;95;1 Place du 19 Mars 1962;95470;FOSSES;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;3;0;2.515632629;49.09876251;49.09876251, 2.515632629
+La Poste - Site de Mennecy;91244;91;65 boulevard Charles de Gaulle;91540;MENNECY;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;31;0;2.4308;48.5627;48.5627, 2.4308
+FRANPRIX CLICHY;92024;92;13 RUE D'ESTIENNES D'ORVES;92110;Clichy;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;403;0;2.303031921;48.90613937;48.90613937, 2.303031921
+VELOGIK;94041;94;128B AV. JEAN JAURES, CAPSTONE, BAT N5;94200;IVRY SUR SEINE;9;Oui;Oui;Non;Non;Oui;Oui;Non;Non;Non;Non;PDL physique;151;0;2.403403691;48.80528974;48.80528974, 2.403403691
+Bureau de Poste - Le-Mesnil-Saint-Denis;78334;78;2 AVENUE HABERT DE MONTMORT;78320;LE MESNIL ST DENIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;33;0;1.961718;48.742738;48.742738, 1.961718
+La Poste - Site de Claye Souilly;77118;77;9 rue Victor Baltard;77410;CLAYE SOUILLY;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;12;1;2.6735;48.9462;48.9462, 2.6735
+Parking Group Indigo (Transdev Park) -  Paris Kléber Trocadéro;75116;75;65 avenue Kléber;75016;PARIS 16;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;180;7;2.289736;48.866109;48.866109, 2.289736
+La Poste - Site de Mere Montfort;78289;78;3 Rue François Dezort;78490;MERE;5;;;;;;;;;;;;40;4;1.8186;48.8051;48.8051, 1.8186
+Franprix Rue Maubeuge;75109;75;60 rue de Maubeuge;75009;PARIS 09;8;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;696;0;2.347296;48.87900925;48.87900925, 2.347296
+La Poste - Site de Morangis;91432;91;39 avenue Marcel Telotte;91420;MORANGIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;90;2;2.330221;48.704532;48.704532, 2.330221
+Bureau de Poste - Rambouillet;78164;78;1 PLACE ANDRE THOME;78120;RAMBOUILLET;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;18;1;1.824075;48.647089;48.647089, 1.824075
+La Poste ROCHECHOUART CARRE PRO;75109;75;5 Rue CHORON;75009;PARIS 09;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;301;7;2.341506;48.877387;48.877387, 2.341506
+Décathlon - Herblay;95306;95;12 Mail des Copistes;95220;HERBLAY;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;118;4;2.18764;48.99997;48.99997, 2.18764
+Décathlon - Croissy Beaubourg;77146;77;25 Allée du 1er Mai;77183;CROISSY-BEAUBOURG;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;86;4;2.63774;48.82885;48.82885, 2.63774
+Local Gare Aulnay-sous-bois;93005;93;3 rue du 11 novembre, au parking à vélo;93600;AULNAY-SOUS-BOIS;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;253;15;2.49385;48.932361;48.932361, 2.49385
+La Poste - Site d'Argenteuil;95018;95;Place François Rabelais;95100;ARGENTEUIL;10;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;441;11;2.234418;48.946596;48.946596, 2.234418
+Samo Coop Cargo;94068;94;43 Boulevard de la Marne;94210;ST MAUR DES FOSSES;50;Oui;Oui;Non;Oui;Oui;Oui;Non;Non;Non;Non;PDL physique;226;0;2.50153404;48.79291601;48.79291601, 2.50153404
+ISSY LES MOULINEAUX PDC;92040;92;45 RUE HOCHE;92130;ISSY LES MOULINEAUX;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;374;0;2.269261427;48.82367037;48.82367037, 2.269261427
+FLEETER;92012;92;11 Avenue Ferdinand Buisson;92100;BOULOGNE BILLANCOURT;5;Oui;Oui;Non;Oui;Oui;Non;Non;Non;Non;Non;PDL physique;266;0;2.254340285;48.8358546;48.8358546, 2.254340285
+La Poste - Site de Maisons Alfort;94046;94;28 avenue du professeur cadiot;94700;MAISONS ALFORT;7;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;527;22;2.432928;48.80377;48.80377, 2.432928
+Bureau de Poste - Boulogne Billancourt Hôtel de ville;92012;92;27 AVENUE ANDRE MORIZET;92100;BOULOGNE BILLANCOURT;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;395;19;2.239867;48.835508;48.835508, 2.239867
+La Poste - Site de Villetaneuse;93079;93;14 rue Maurice Paillard;93430;VILLETANEUSE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;145;3;2.346532;48.95487;48.95487, 2.346532
+Décathlon - Montreuil;93048;93;67 Bis/79 Rue de la République;93100;MONTREUIL;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;798;67;2.41584;48.8521;48.8521, 2.41584
+Décathlon - Provins;77414;77;24 Route de Champbenoist;77160;PROVINS;1;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;13;0;3.2992;48.55363;48.55363, 3.2992
+La Poste - Site de Goussainville;95241;95;1 Rue Joseph Jacquard;95190;GOUSSAINVILLE;15;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;34;0;2.45538;49.024647;49.024647, 2.45538
+Bureau de Poste - Fosses;95580;95;AVENUE DU MESNIL;95470;FOSSES;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;7;0;2.516475;49.09794;49.09794, 2.516475
+Les mureaux bp;78140;78;CENTRE COMMERCIAL ESPACE;78130;LES MUREAUX;0;Non;Oui;Non;Non;Non;Non;Non;Non;Non;Non;PDL physique;47;4;1.911906;48.978723;48.978723, 1.911906
+La Poste PASSY;75116;75;38 RUE SINGER;75016;PARIS 16;5;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;413;13;2.276651;48.856585;48.856585, 2.276651
+POISSY PPDC;78498;78;1 RD 30 Chemin de Rocourt;78300;POISSY;4;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;8;0;2.060129482;48.95168208;48.95168208, 2.060129482
+Bureau de Poste - Ballancourt-sur-Essonne;91045;91;22 RUE DE L AUNETTE;91610;BALLANCOURT SUR ESSONNE;3;Oui;Oui;Oui;Non;Non;Non;Non;Non;Non;Non;PDL physique;10;0;2.380285;48.526732;48.526732, 2.380285

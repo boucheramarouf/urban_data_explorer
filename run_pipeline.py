@@ -33,6 +33,12 @@ def get_indicateurs():
             "silver" : _silver_itr,
             "gold"   : _gold_itr,
         },
+        "IAML": {
+            "label"  : "Indice d'Accessibilité Multimodale au Logement",
+            "bronze" : _bronze_iaml,
+            "silver" : _silver_iaml,
+            "gold"   : _gold_iaml,
+        },
         # Exemple pour une autre équipe :
         # "AIR": {
         #     "label"  : "Qualité de l'air",
@@ -85,8 +91,35 @@ def _silver_itr():
 def _gold_itr():
     from src.gold.gold_ITR.itr_gold import run as itr
     from src.gold.gold_ITR.load_gold_to_db import run as load_gold_to_db
+    from src.gold.gold_ITR.load_gold_to_mongo import run as load_gold_to_mongo
     itr()
     load_gold_to_db()
+    load_gold_to_mongo()
+
+
+# ──────────────────────────────────────────────────────────────
+# IAML — Bronze / Silver / Gold
+# ──────────────────────────────────────────────────────────────
+
+def _bronze_iaml():
+    from src.bronze.bronze_IAML.transports_bronze import run as transports
+    from src.bronze.bronze_IAML.velib_bronze import run as velib
+    transports(); print()
+    velib()
+
+
+def _silver_iaml():
+    from src.silver.silver_IAML.rue_accessibilite_silver import run as rue_access
+    rue_access()
+
+
+def _gold_iaml():
+    from src.gold.gold_IAML.iaml_gold import run as iaml
+    from src.gold.gold_IAML.load_gold_to_db import run as load_gold_to_db
+    from src.gold.gold_IAML.load_gold_to_mongo import run as load_gold_to_mongo
+    iaml()
+    load_gold_to_db()
+    load_gold_to_mongo()
 
 
 # ──────────────────────────────────────────────────────────────

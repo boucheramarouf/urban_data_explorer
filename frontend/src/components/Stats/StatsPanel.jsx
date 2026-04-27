@@ -1,5 +1,6 @@
 import React from 'react'
 import ArrondChart from './ArrondChart.jsx'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const LABEL_COLOR = {
   'Très accessible': '#22c55e',
@@ -24,10 +25,14 @@ const StatCard = ({ label, value, sub }) => (
   </div>
 )
 
-export default function StatsPanel({ stats, geojsonCount }) {
+export default function StatsPanel({ indicator, stats, geojsonCount }) {
   if (!stats) return (
     <div style={{ padding: 16, color: '#555e80', fontSize: 12, textAlign: 'center' }}>Chargement des stats...</div>
   )
+
+  const cfg = getIndicatorConfig(indicator)
+  const scoreMedianKey = `${cfg.key}_score_median`
+  const scoreValue = stats[scoreMedianKey]
 
   const total = Object.values(stats.distribution_label).reduce((a, b) => a + b, 0)
 
@@ -36,7 +41,7 @@ export default function StatsPanel({ stats, geojsonCount }) {
       {/* KPIs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <StatCard label="Rues analysées" value={stats.nb_rues_total.toLocaleString('fr-FR')} sub="Paris 2021" />
-        <StatCard label="Score médian" value={stats.itr_score_median} sub="sur 100" />
+        <StatCard label={cfg.scoreLabel + ' médian'} value={scoreValue} sub="sur 100" />
       </div>
 
       {/* Distribution labels */}
@@ -62,7 +67,7 @@ export default function StatsPanel({ stats, geojsonCount }) {
       </div>
 
       {/* Classement arrondissements */}
-      <ArrondChart data={stats.par_arrondissement} />
+      <ArrondChart indicator={indicator} data={stats.par_arrondissement} />
     </div>
   )
 }

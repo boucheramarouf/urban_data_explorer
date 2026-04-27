@@ -3,6 +3,7 @@ import SearchBar from './SearchBar.jsx'
 import Filters from './Filters.jsx'
 import RueDetail from './RueDetail.jsx'
 import StatsPanel from '../Stats/StatsPanel.jsx'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const TAB = ({ label, active, onClick }) => (
   <button
@@ -24,8 +25,18 @@ const TAB = ({ label, active, onClick }) => (
   </button>
 )
 
-export default function Sidebar({ geojson, stats, filters, onFiltersChange, selectedRue, onSelectRue }) {
+export default function Sidebar({
+  indicator,
+  onIndicatorChange,
+  geojson,
+  stats,
+  filters,
+  onFiltersChange,
+  selectedRue,
+  onSelectRue,
+}) {
   const [tab, setTab] = useState('filtres')
+  const cfg = getIndicatorConfig(indicator)
 
   return (
     <div style={{
@@ -40,11 +51,46 @@ export default function Sidebar({ geojson, stats, filters, onFiltersChange, sele
       {/* Logo / titre */}
       <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #2e3348' }}>
         <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f2ff', letterSpacing: '-0.02em' }}>
-          ITR <span style={{ color: '#6c7dff' }}>Paris</span>
+          {cfg.title.split(' ')[0]} <span style={{ color: '#6c7dff' }}>Paris</span>
         </p>
         <p style={{ fontSize: 11, color: '#555e80', marginTop: 2 }}>
-          Indice de Tension Résidentielle · 2021
+          {cfg.subtitle}
         </p>
+
+        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+          <button
+            onClick={() => onIndicatorChange('itr')}
+            style={{
+              flex: 1,
+              border: '1px solid #2e3348',
+              borderRadius: 6,
+              background: indicator === 'itr' ? '#6c7dff22' : '#1a1d27',
+              color: indicator === 'itr' ? '#cfd6ff' : '#8b92b8',
+              fontSize: 11,
+              fontWeight: 600,
+              padding: '6px 8px',
+              cursor: 'pointer',
+            }}
+          >
+            ITR
+          </button>
+          <button
+            onClick={() => onIndicatorChange('iaml')}
+            style={{
+              flex: 1,
+              border: '1px solid #2e3348',
+              borderRadius: 6,
+              background: indicator === 'iaml' ? '#6c7dff22' : '#1a1d27',
+              color: indicator === 'iaml' ? '#cfd6ff' : '#8b92b8',
+              fontSize: 11,
+              fontWeight: 600,
+              padding: '6px 8px',
+              cursor: 'pointer',
+            }}
+          >
+            IAML
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -57,8 +103,8 @@ export default function Sidebar({ geojson, stats, filters, onFiltersChange, sele
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
         {tab === 'filtres' && (
           <>
-            <SearchBar geojson={geojson} onSelectRue={onSelectRue} />
-            <Filters filters={filters} onChange={onFiltersChange} />
+            <SearchBar indicator={indicator} geojson={geojson} onSelectRue={onSelectRue} />
+            <Filters indicator={indicator} filters={filters} onChange={onFiltersChange} />
 
             {/* Compteur rues affichées */}
             {geojson && (
@@ -80,13 +126,13 @@ export default function Sidebar({ geojson, stats, filters, onFiltersChange, sele
 
             {/* Détail rue sélectionnée */}
             {selectedRue && (
-              <RueDetail rue={selectedRue} onClose={() => onSelectRue(null)} />
+              <RueDetail indicator={indicator} rue={selectedRue} onClose={() => onSelectRue(null)} />
             )}
           </>
         )}
 
         {tab === 'stats' && (
-          <StatsPanel stats={stats} />
+          <StatsPanel indicator={indicator} stats={stats} />
         )}
       </div>
 

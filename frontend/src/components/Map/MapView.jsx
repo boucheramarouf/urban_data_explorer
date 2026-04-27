@@ -2,15 +2,19 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import Tooltip from './Tooltip.jsx'
 import Legend from './Legend.jsx'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'
 
-export default function MapView({ geojson, selectedRue, onSelectRue }) {
+export default function MapView({ indicator, geojson, selectedRue, onSelectRue }) {
   const mapContainer = useRef(null)
   const map          = useRef(null)
   const isLoaded     = useRef(false)
   const pendingData  = useRef(null)
   const [tooltip, setTooltip] = useState({ feature: null, x: 0, y: 0 })
+
+  const cfg = getIndicatorConfig(indicator)
+  const scoreField = cfg.scoreField
 
   // ── Init carte (une seule fois)
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
             3, 4, 50, 7, 200, 11,
           ],
           'circle-color': [
-            'interpolate', ['linear'], ['get', 'itr_score'],
+            'interpolate', ['linear'], ['get', scoreField],
             0,   '#22c55e',
             20,  '#22c55e',
             40,  '#84cc16',
@@ -112,6 +116,20 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
     }
   }, [])
 
+  useEffect(() => {
+    if (!isLoaded.current || !map.current) return
+
+    map.current.setPaintProperty('rues-points', 'circle-color', [
+      'interpolate', ['linear'], ['get', scoreField],
+      0, '#22c55e',
+      20, '#22c55e',
+      40, '#84cc16',
+      60, '#eab308',
+      80, '#f97316',
+      100, '#ef4444',
+    ])
+  }, [scoreField])
+
   // ── Mise à jour GeoJSON (sécurisée)
   useEffect(() => {
     if (!geojson) return
@@ -140,8 +158,8 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-      <Tooltip feature={tooltip.feature} x={tooltip.x} y={tooltip.y} />
-      <Legend />
+      <Tooltip indicator={indicator} feature={tooltip.feature} x={tooltip.x} y={tooltip.y} />
+      <Legend indicator={indicator} />
     </div>
   )
 }

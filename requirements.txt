@@ -13,3 +13,4 @@ uvicorn>=0.29.0
 #DB
 sqlalchemy>=2.0
 psycopg[binary]>=3.1
+pymongo>=4.8.0
