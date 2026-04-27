@@ -17,17 +17,19 @@ Endpoints :
 
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 import pandas as pd
 import json
 from pathlib import Path
 from typing import Optional
+import os
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 # ──────────────────────────────────────────────
 # CONFIG
 # ──────────────────────────────────────────────
 
-GOLD_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
 GOLD_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
 
 app = FastAPI(
@@ -44,41 +46,77 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Config db
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL manquante")
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    future=True,
+)
 
 # ──────────────────────────────────────────────
-# CHARGEMENT DATA (au démarrage, 1 seule fois)
+# CONNECTIVITE BASE DE DONNEES
 # ──────────────────────────────────────────────
 
-_df: Optional[pd.DataFrame] = None
+def is_db_ready() -> bool:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except SQLAlchemyError:
+        return False
+    
 
-def get_df() -> pd.DataFrame:
-    global _df
-    if _df is None:
-        if not GOLD_PARQUET.exists():
-            raise RuntimeError(
-                f"Fichier gold introuvable : {GOLD_PARQUET}\n"
-                "Lancez d'abord : python run_pipeline.py"
-            )
-        _df = pd.read_parquet(GOLD_PARQUET)
-    return _df
+# ──────────────────────────────────────────────
+# CHARGEMENT DATA SQL
+# ──────────────────────────────────────────────
+
+def get_df_sql() -> pd.DataFrame:
+    query = """
+    SELECT
+        nom_voie, code_postal, arrondissement,
+        lon_centre, lat_centre,
+        prix_m2_median, revenu_median_uc, nb_logements_sociaux,
+        nb_transactions, itr_score, itr_label
+    FROM itr_par_rue
+    """
+    return pd.read_sql(query, engine)
 
 
 # ──────────────────────────────────────────────
-# ENDPOINT 1 : healthcheck
+# ENDPOINT 1 : redirection docs + healthcheck
 # ──────────────────────────────────────────────
 
 @app.get("/", tags=["Healthcheck"])
 def root():
-    df = get_df()
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/health", tags=["Healthcheck"])
+def health():
+    db_ok = is_db_ready()
+    if not db_ok:
+        return {
+            "status": "ok",
+            "db_status": "down",
+            "version": "1.0.0",
+        }
+
+    df = get_df_sql()
     return {
-        "status"     : "ok",
-        "version"    : "1.0.0",
-        "nb_rues"    : len(df),
-        "score_min"  : round(df["itr_score"].min(), 2),
-        "score_max"  : round(df["itr_score"].max(), 2),
+        "status": "ok",
+        "db_status": "ok",
+        "version": "1.0.0",
+        "nb_rues": len(df),
+        "score_min": round(df["itr_score"].min(), 2),
+        "score_max": round(df["itr_score"].max(), 2),
         "score_median": round(df["itr_score"].median(), 2),
     }
-
+    
 
 # ──────────────────────────────────────────────
 # ENDPOINT 2 : stats globales
@@ -90,7 +128,7 @@ def stats():
     Statistiques globales sur l'ITR Paris.
     Retourne la distribution par niveau de tension et par arrondissement.
     """
-    df = get_df()
+    df = get_df_sql()
 
     # Distribution par label
     dist_label = (
@@ -150,7 +188,7 @@ def list_rues(
     - `/rues?label=Très tendu&limit=20` → 20 rues les plus tendues
     - `/rues?score_min=80&sort_by=prix_m2_median` → rues très tendues triées par prix
     """
-    df = get_df().copy()
+    df = get_df_sql().copy()
 
     if arrondissement is not None:
         df = df[df["arrondissement"] == arrondissement]
@@ -202,7 +240,7 @@ def get_rue(
 
     Exemple : `/rues/RUE DU BAC?code_postal=75007`
     """
-    df = get_df()
+    df = get_df_sql()
 
     mask = df["nom_voie"].str.upper() == nom_voie.upper()
     if code_postal is not None:
@@ -262,7 +300,7 @@ def geojson(
                 return JSONResponse(content=json.load(f))
 
     # Sinon filtrer dynamiquement
-    df = get_df().copy()
+    df = get_df_sql().copy()
     if arrondissement is not None:
         df = df[df["arrondissement"] == arrondissement]
     if label is not None:

@@ -65,7 +65,9 @@ def _silver_itr():
 
 def _gold_itr():
     from src.gold.gold_ITR.itr_gold import run as itr
+    from src.gold.gold_ITR.load_gold_to_db import run as load_gold_to_db
     itr()
+    load_gold_to_db()
 
 
 # ──────────────────────────────────────────────────────────────

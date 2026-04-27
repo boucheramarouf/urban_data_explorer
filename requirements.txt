@@ -9,3 +9,7 @@ numpy>=1.26.0
 # API
 fastapi>=0.110.0
 uvicorn>=0.29.0
+
+#DB
+sqlalchemy>=2.0
+psycopg[binary]>=3.1
