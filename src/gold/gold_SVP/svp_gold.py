@@ -1,232 +1,140 @@
 """
-GOLD — Calcul SVP par point de grille (autonome, sans dépendance ITR)
-======================================================================
-Calcule le Score de Verdure et Proximité (SVP) sur une grille régulière
-de points couvrant Paris intramuros, puis exporte le résultat.
+GOLD - Calcul SVP par rue
+=========================
+Aligne le calcul SVP sur la meme maille que l'ITR : une ligne = une rue.
 
-Aucune dépendance aux données ITR. Fonctionne de manière totalement
-indépendante. Le merge avec l'ITR se fait côté frontend/API si souhaité.
-
-Entrées (toutes dans silver_SVP — générées par le pipeline SVP) :
+Entrees :
+    data/gold/gold_ITR/itr_par_rue.parquet
     data/silver/silver_SVP/espaces_verts_clean.parquet
     data/silver/silver_SVP/arbres_clean.parquet
     data/silver/silver_SVP/commerces_alim_clean.parquet
 
-Référentiel spatial interne (livré avec le projet) :
-    data/bronze/bronze_ITR/iris_geo_raw.gpkg   ← polygones IRIS Paris
-    → Utilisé uniquement pour retrouver l'arrondissement de chaque point.
-    → Ne dépend PAS du pipeline ITR (bronze déjà présent dans le zip).
-
 Sorties :
-    data/gold/gold_SVP/svp_par_point.parquet
-    data/gold/gold_SVP/svp_par_point.geojson   ← livraison API / carte
+    data/gold/gold_SVP/svp_par_rue.parquet
+    data/gold/gold_SVP/svp_par_rue.geojson
 
-Grille de calcul :
-    Résolution : 150 m (espacement entre les points)
-    Emprise   : Paris intramuros (bbox Lambert-93)
-    Résultat  : ~3 400 points, chacun représentant un micro-quartier
-
-Formule :
-    score_vert       = 0.5 × norm(nb_espaces_verts_200m)
-                     + 0.5 × norm(nb_arbres_200m)
-
-    score_acces_alim = norm(score_alim_brut_500m)
-
-    SVP = 0.60 × score_vert + 0.40 × score_acces_alim   ∈ [0, 100]
-
-Normalisation : Min-Max sur l'ensemble des points parisiens.
+Principe :
+    - Reprendre exactement les rues de l'ITR
+    - Utiliser leur point central (lon_centre, lat_centre)
+    - Compter autour de chaque rue :
+        * espaces verts dans 200 m
+        * arbres dans 200 m
+        * commerces alimentaires ponderes dans 500 m
+    - Normaliser avec log1p + cap P99
+    - Produire un score SVP sur 100
 """
 
-import pandas as pd
+from pathlib import Path
+import json
+
 import geopandas as gpd
 import numpy as np
-import json
-from pathlib import Path
-from pyproj import Transformer
-from shapely.geometry import Point
+import pandas as pd
 from shapely import from_wkt
+from shapely.geometry import Point
 
-# ── Chemins ───────────────────────────────────────────────────────────────────
+ITR_RUES_PATH = Path("data/gold/gold_ITR/itr_par_rue.parquet")
+EV_SILVER = Path("data/silver/silver_SVP/espaces_verts_clean.parquet")
+ARB_SILVER = Path("data/silver/silver_SVP/arbres_clean.parquet")
+COM_SILVER = Path("data/silver/silver_SVP/commerces_alim_clean.parquet")
 
-EV_SILVER   = Path("data/silver/silver_SVP/espaces_verts_clean.parquet")
-ARB_SILVER  = Path("data/silver/silver_SVP/arbres_clean.parquet")
-COM_SILVER  = Path("data/silver/silver_SVP/commerces_alim_clean.parquet")
-IRIS_GPKG   = Path("data/bronze/bronze_ITR/iris_geo_raw.gpkg")
+OUT_PARQUET = Path("data/gold/gold_SVP/svp_par_rue.parquet")
+OUT_GEOJSON = Path("data/gold/gold_SVP/svp_par_rue.geojson")
 
-OUT_PARQUET = Path("data/gold/gold_SVP/svp_par_point.parquet")
-OUT_GEOJSON = Path("data/gold/gold_SVP/svp_par_point.geojson")
+CRS_WGS84 = "EPSG:4326"
+CRS_METRIC = "EPSG:2154"
 
-# ── Paramètres grille ─────────────────────────────────────────────────────────
-
-# Bbox Paris intramuros en Lambert-93 (EPSG:2154)
-GRID_X_MIN, GRID_X_MAX = 648_500, 660_500
-GRID_Y_MIN, GRID_Y_MAX = 6_858_500, 6_871_000
-GRID_PAS_M = 150        # espacement en mètres
-
-# ── Paramètres géospatiaux ────────────────────────────────────────────────────
-
-RAYON_VERT_M = 200      # rayon espaces verts + arbres
-RAYON_ALIM_M = 500      # rayon commerces alimentaires
-CRS_METRIC   = "EPSG:2154"
-CRS_WGS84    = "EPSG:4326"
-
-# ── Pondérations ─────────────────────────────────────────────────────────────
+RAYON_VERT_M = 200
+RAYON_ALIM_M = 500
 
 W_VERT = 0.60
 W_ALIM = 0.40
 
-# ── Labels SVP ───────────────────────────────────────────────────────────────
-
 LABELS_SVP = ["Très faible", "Faible", "Modéré", "Bon", "Excellent"]
-BINS_SVP   = [0, 20, 40, 60, 80, 100]
+BINS_SVP = [0, 20, 40, 60, 80, 100]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 1. GÉNÉRATION DE LA GRILLE DE POINTS
-# ──────────────────────────────────────────────────────────────────────────────
-
-def build_grid() -> gpd.GeoDataFrame:
-    """
-    Génère une grille régulière de points espacés de GRID_PAS_M mètres
-    sur la bbox Paris intramuros (Lambert-93), puis :
-        1. Convertit chaque point en WGS84 (lon/lat)
-        2. Filtre les points hors Paris via un spatial join sur les IRIS
-
-    Retourne un GeoDataFrame WGS84 avec colonnes :
-        lon, lat, arrondissement, code_postal, code_iris, geometry
-    """
-    print(f"  Génération de la grille ({GRID_PAS_M}m)…")
-
-    t_to_wgs = Transformer.from_crs(CRS_METRIC, CRS_WGS84, always_xy=True)
-
-    xs = np.arange(GRID_X_MIN, GRID_X_MAX, GRID_PAS_M)
-    ys = np.arange(GRID_Y_MIN, GRID_Y_MAX, GRID_PAS_M)
-
-    rows = []
-    for x in xs:
-        for y in ys:
-            lon, lat = t_to_wgs.transform(x, y)
-            rows.append({"lon": round(lon, 6), "lat": round(lat, 6),
-                         "geometry": Point(lon, lat)})
-
-    grille = gpd.GeoDataFrame(rows, crs=CRS_WGS84)
-    print(f"  Grille brute : {len(grille):,} points")
-
-    # Charger les polygones IRIS pour filtrer Paris et obtenir l'arrondissement
-    iris = gpd.read_file(IRIS_GPKG, layer="iris_ge")[["CODE_IRIS", "geometry"]]
-
-    # Dériver arrondissement et code_postal depuis CODE_IRIS (format '751XXYYYY')
-    # Les 3 premiers chiffres = dép (751), suivis de 2 chiffres arrondissement
-    iris["arrondissement"] = iris["CODE_IRIS"].str[3:5].astype(int)
-    iris["code_postal"]    = "750" + iris["CODE_IRIS"].str[3:5]
-    iris["code_iris"]      = iris["CODE_IRIS"]
-
-    # Spatial join : ne garder que les points dans un IRIS parisien
-    joined = gpd.sjoin(
-        grille,
-        iris[["CODE_IRIS", "arrondissement", "code_postal", "code_iris", "geometry"]],
-        how="inner",
-        predicate="within",
-    ).drop(columns=["index_right", "CODE_IRIS"], errors="ignore")
-
-    print(f"  Points dans Paris (dans un IRIS) : {len(joined):,}")
-    return joined.reset_index(drop=True)
+def load_rues_itr() -> gpd.GeoDataFrame:
+    df = pd.read_parquet(ITR_RUES_PATH)
+    df = df.dropna(subset=["nom_voie", "code_postal", "lon_centre", "lat_centre"]).copy()
+    df["geometry"] = [Point(lon, lat) for lon, lat in zip(df["lon_centre"], df["lat_centre"])]
+    rues = gpd.GeoDataFrame(df, geometry="geometry", crs=CRS_WGS84)
+    print(f"  Rues ITR chargees : {len(rues):,}")
+    return rues
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 2. CHARGEMENT DES SILVER SVP
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _parquet_to_gdf(path: Path) -> gpd.GeoDataFrame:
-    """Relit un parquet silver (geometry_wkt) en GeoDataFrame WGS84."""
+def _parquet_wkt_to_gdf(path: Path, lon_col: str | None = None, lat_col: str | None = None) -> gpd.GeoDataFrame:
     df = pd.read_parquet(path)
-    geom = df["geometry_wkt"].apply(lambda w: from_wkt(w) if pd.notna(w) else None)
-    return gpd.GeoDataFrame(df.drop(columns=["geometry_wkt"]),
-                            geometry=geom, crs=CRS_WGS84)
+    if "geometry_wkt" in df.columns:
+        geom = df["geometry_wkt"].apply(lambda w: from_wkt(w) if pd.notna(w) else None)
+        return gpd.GeoDataFrame(df.drop(columns=["geometry_wkt"]), geometry=geom, crs=CRS_WGS84)
+    if lon_col and lat_col and lon_col in df.columns and lat_col in df.columns:
+        geom = [Point(lon, lat) for lon, lat in zip(df[lon_col], df[lat_col])]
+        return gpd.GeoDataFrame(df, geometry=geom, crs=CRS_WGS84)
+    raise ValueError(f"Impossible de reconstruire la geometrie pour {path}")
 
 
-def load_silver() -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
-    """Charge les trois couches silver SVP."""
-    ev  = _parquet_to_gdf(EV_SILVER)
-    arb = _parquet_to_gdf(ARB_SILVER)
-    com = _parquet_to_gdf(COM_SILVER)
-    print(f"  Espaces verts : {len(ev):,}")
-    print(f"  Arbres        : {len(arb):,}")
-    print(f"  Commerces     : {len(com):,}")
-    return ev, arb, com
+def load_silver_layers() -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    ev = pd.read_parquet(EV_SILVER)
+    ev["geometry"] = [Point(lon, lat) for lon, lat in zip(ev["lon_centroid"], ev["lat_centroid"])]
+    ev_gdf = gpd.GeoDataFrame(ev.drop(columns=["geometry_wkt"], errors="ignore"), geometry="geometry", crs=CRS_WGS84)
 
+    arb_gdf = _parquet_wkt_to_gdf(ARB_SILVER)
+    com_gdf = _parquet_wkt_to_gdf(COM_SILVER)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 3. COMPTAGE SPATIAL PAR RAYON
-# ──────────────────────────────────────────────────────────────────────────────
+    print(
+        "  Couches silver chargees : "
+        f"{len(ev_gdf):,} espaces verts | {len(arb_gdf):,} arbres | {len(com_gdf):,} commerces"
+    )
+    return ev_gdf, arb_gdf, com_gdf
+
 
 def count_within_radius(
-    points_m: gpd.GeoDataFrame,
+    anchors_m: gpd.GeoDataFrame,
     targets_m: gpd.GeoDataFrame,
-    radius_m: float,
+    radius_m: int,
     col_name: str,
     weight_col: str | None = None,
 ) -> pd.Series:
-    """
-    Pour chaque point de points_m, compte les éléments de targets_m
-    dans un rayon radius_m (unités métriques — Lambert-93).
-
-    Si weight_col est fourni → somme des poids (score pondéré).
-    Sinon → comptage simple.
-
-    Retourne une Series indexée sur points_m.index.
-    """
-    buffers = points_m.copy()
-    buffers["geometry"] = points_m.geometry.buffer(radius_m)
-
-    joined = gpd.sjoin(targets_m, buffers[["geometry"]],
-                       how="inner", predicate="within")
+    buffers = anchors_m[["geometry"]].copy()
+    buffers["geometry"] = buffers.geometry.buffer(radius_m)
+    joined = gpd.sjoin(targets_m, buffers, how="inner", predicate="within")
 
     if weight_col and weight_col in joined.columns:
         agg = joined.groupby("index_right")[weight_col].sum()
     else:
         agg = joined.groupby("index_right").size()
 
-    result = agg.reindex(points_m.index, fill_value=0).astype(float)
+    result = agg.reindex(anchors_m.index, fill_value=0).astype(float)
     result.name = col_name
     return result
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 4. CALCUL SVP
-# ──────────────────────────────────────────────────────────────────────────────
+def _norm_log(s: pd.Series, cap_quantile: float = 0.99) -> pd.Series:
+    if s.max() == 0:
+        return pd.Series(0.0, index=s.index)
 
-def _normalize(s: pd.Series) -> pd.Series:
-    """Normalisation Min-Max → [0, 1]. Retourne 0 si toutes valeurs identiques."""
-    s_min, s_max = s.min(), s.max()
+    p99 = s.quantile(cap_quantile)
+    s_capped = s.clip(0, p99) if p99 > 0 else s
+    s_log = np.log1p(s_capped)
+    s_min, s_max = s_log.min(), s_log.max()
     if s_max == s_min:
-        return pd.Series(np.zeros(len(s)), index=s.index)
-    return (s - s_min) / (s_max - s_min)
+        return pd.Series(0.0, index=s.index)
+    return (s_log - s_min) / (s_max - s_min)
 
 
 def compute_svp(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calcule les composantes et le score SVP final.
-
-    score_vert       = 0.5 × norm(nb_espaces_verts) + 0.5 × norm(nb_arbres)
-    score_acces_alim = norm(score_alim_brut)
-    SVP              = 0.60 × score_vert + 0.40 × score_acces_alim  → [0, 100]
-    """
     df = df.copy()
 
-    df["score_vert"]       = (0.5 * _normalize(df["nb_espaces_verts"])
-                             + 0.5 * _normalize(df["nb_arbres"]))
-    df["score_acces_alim"] = _normalize(df["score_alim_brut"])
+    df["n_espaces_verts"] = _norm_log(df["nb_espaces_verts"])
+    df["n_arbres"] = _norm_log(df["nb_arbres"])
+    df["n_alim"] = _norm_log(df["score_alim_brut"])
 
+    df["score_vert"] = 0.5 * df["n_espaces_verts"] + 0.5 * df["n_arbres"]
+    df["score_acces_alim"] = df["n_alim"]
     df["svp_brut"] = W_VERT * df["score_vert"] + W_ALIM * df["score_acces_alim"]
-
-    # Re-normalisation globale pour maximiser le spread 0–100
-    svp_min, svp_max = df["svp_brut"].min(), df["svp_brut"].max()
-    if svp_max > svp_min:
-        df["svp_score"] = (100 * (df["svp_brut"] - svp_min)
-                          / (svp_max - svp_min)).round(2)
-    else:
-        df["svp_score"] = 0.0
+    df["svp_score"] = (df["svp_brut"] * 100).round(2).clip(0, 100)
+    df["has_commerce"] = df["score_alim_brut"] > 0
 
     df["svp_label"] = pd.cut(
         df["svp_score"],
@@ -235,192 +143,140 @@ def compute_svp(df: pd.DataFrame) -> pd.DataFrame:
         include_lowest=True,
     ).astype(str)
 
-    print(f"  svp_score : "
-          f"min={df['svp_score'].min():.1f}  "
-          f"médiane={df['svp_score'].median():.1f}  "
-          f"max={df['svp_score'].max():.1f}")
+    print(
+        "  svp_score : "
+        f"min={df['svp_score'].min():.1f}  "
+        f"median={df['svp_score'].median():.1f}  "
+        f"max={df['svp_score'].max():.1f}"
+    )
+    print(f"  Rues sans commerce detecte : {(~df['has_commerce']).sum():,}")
     return df
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 5. MISE EN FORME FINALE
-# ──────────────────────────────────────────────────────────────────────────────
-
-def finalize(df: pd.DataFrame) -> pd.DataFrame:
+def finalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     cols = [
-        # Identifiants géographiques
-        "arrondissement",
+        "nom_voie",
         "code_postal",
+        "arrondissement",
         "code_iris",
-        # Coordonnées GPS du point de grille
-        "lon",
-        "lat",
-        # Comptages bruts
+        "lon_centre",
+        "lat_centre",
         "nb_espaces_verts",
         "nb_arbres",
         "score_alim_brut",
-        # Composantes normalisées [0,1]
         "score_vert",
         "score_acces_alim",
         "svp_brut",
-        # Score final
         "svp_score",
         "svp_label",
+        "has_commerce",
     ]
     return df[[c for c in cols if c in df.columns]]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 6. STATS TERMINAUX
-# ──────────────────────────────────────────────────────────────────────────────
+def validate(df: pd.DataFrame) -> None:
+    assert len(df) > 0, "Aucune rue en sortie"
+    assert df["svp_score"].between(0, 100).all(), "Scores hors [0, 100]"
+    assert df["svp_score"].isna().sum() == 0, "NaN dans svp_score"
+    assert df["nom_voie"].notna().all(), "nom_voie manquant"
+    assert df["lon_centre"].between(2.2, 2.5).all(), "Longitudes hors Paris"
+    assert df["lat_centre"].between(48.8, 48.95).all(), "Latitudes hors Paris"
+    print(f"  [OK] {len(df):,} rues valides")
+
 
 def print_stats(df: pd.DataFrame) -> None:
-    print("\n  ── Distribution par niveau SVP ──")
-    dist = (df["svp_label"].value_counts()
-            .reindex(LABELS_SVP).fillna(0).astype(int))
+    print("\n  -- Distribution par niveau SVP --")
+    dist = df["svp_label"].value_counts().reindex(LABELS_SVP).fillna(0).astype(int)
     for label, count in dist.items():
         pct = count / len(df) * 100
-        bar = "█" * int(pct / 2)
-        print(f"  {label:<15} {count:>5} points  {pct:>5.1f}%  {bar}")
+        print(f"  {label:<11} {count:>5} rues  {pct:>5.1f}%")
 
-    print(f"\n  ── Top 5 arrondissements les plus VERTS ──")
-    by_arr = (df.groupby("arrondissement")["svp_score"]
-              .median().sort_values(ascending=False).head(5))
-    for arr, score in by_arr.items():
-        print(f"  [{score:>5.1f}] {arr}e arrondissement")
+    top = df.nlargest(5, "svp_score")[["nom_voie", "arrondissement", "svp_score", "nb_arbres", "score_alim_brut"]]
+    print("\n  -- Top 5 rues SVP --")
+    for _, row in top.iterrows():
+        print(
+            f"  [{row['svp_score']:>6.1f}] {row['nom_voie']:<35} "
+            f"arr.{int(row['arrondissement']):02d}  "
+            f"arbres={int(row['nb_arbres'])}  alim={row['score_alim_brut']:.1f}"
+        )
 
-    print(f"\n  ── Top 5 arrondissements les plus GRIS ──")
-    by_arr_bot = (df.groupby("arrondissement")["svp_score"]
-                  .median().sort_values(ascending=True).head(5))
-    for arr, score in by_arr_bot.items():
-        print(f"  [{score:>5.1f}] {arr}e arrondissement")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 7. EXPORT GEOJSON
-# ──────────────────────────────────────────────────────────────────────────────
 
 def to_geojson(df: pd.DataFrame, path: Path) -> None:
-    """GeoJSON FeatureCollection — chaque point = 1 Feature."""
+    prop_cols = [c for c in df.columns if c not in ("lon_centre", "lat_centre")]
     features = []
-    prop_cols = [c for c in df.columns if c not in ("lon", "lat")]
 
     for _, row in df.iterrows():
         props = {}
         for col in prop_cols:
             val = row[col]
-            if isinstance(val, (np.integer,)):
+            if isinstance(val, np.integer):
                 props[col] = int(val)
-            elif isinstance(val, (np.floating,)) and not np.isnan(val):
-                props[col] = round(float(val), 4)
+            elif isinstance(val, np.floating):
+                props[col] = None if np.isnan(val) else round(float(val), 4)
+            elif isinstance(val, (np.bool_, bool)):
+                props[col] = bool(val)
             elif pd.isna(val):
                 props[col] = None
             else:
                 props[col] = val
 
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [round(float(row["lon"]), 6),
-                                round(float(row["lat"]), 6)],
-            },
-            "properties": props,
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [round(float(row["lon_centre"]), 6), round(float(row["lat_centre"]), 6)],
+                },
+                "properties": props,
+            }
+        )
 
     geojson = {
         "type": "FeatureCollection",
         "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
         "features": features,
     }
+
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(geojson, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"  GeoJSON : {path}  "
-          f"({path.stat().st_size / 1024:.0f} KB, {len(features)} features)")
 
+    print(f"  GeoJSON : {path}  ({len(features)} features)")
 
-# ──────────────────────────────────────────────────────────────────────────────
-# 8. VALIDATION
-# ──────────────────────────────────────────────────────────────────────────────
-
-def validate(df: pd.DataFrame) -> None:
-    assert "svp_score" in df.columns, "Colonne svp_score manquante"
-    assert df["svp_score"].between(0, 100).all(), "Scores hors [0, 100]"
-    assert df["svp_score"].isna().sum() == 0, "NaN dans svp_score"
-    assert df["lon"].between(2.22, 2.47).all(), "Longitudes hors Paris"
-    assert df["lat"].between(48.82, 48.94).all(), "Latitudes hors Paris"
-    print(f"\n  [OK] {len(df):,} points avec score SVP valide")
-    print(f"  [OK] Scores dans [0, 100]")
-    print(f"  [OK] Coordonnées dans la bbox Paris")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 9. RUN
-# ──────────────────────────────────────────────────────────────────────────────
 
 def run() -> pd.DataFrame:
-    print("=== GOLD SVP : Score de Verdure et Proximité (autonome) ===")
+    print("=== GOLD SVP : calcul par rue ===")
 
-    # ── Grille de points Paris ───────────────────────────────────────────────
-    print("\n  Étape 1 — Génération de la grille de points…")
-    grille = build_grid()
+    rues = load_rues_itr()
+    ev, arb, com = load_silver_layers()
 
-    # ── Chargement des couches silver SVP ────────────────────────────────────
-    print("\n  Étape 2 — Chargement des données silver SVP…")
-    ev, arb, com = load_silver()
+    print("\n  Projection Lambert-93...")
+    rues_m = rues.to_crs(CRS_METRIC)
+    ev_m = ev.to_crs(CRS_METRIC)
+    arb_m = arb.to_crs(CRS_METRIC)
+    com_m = com.to_crs(CRS_METRIC)
 
-    # ── Projection Lambert-93 pour les calculs de distance ──────────────────
-    print("\n  Étape 3 — Projection Lambert-93…")
-    grille_m = grille.to_crs(CRS_METRIC)
-    ev_m     = ev.to_crs(CRS_METRIC)
-    arb_m    = arb.to_crs(CRS_METRIC)
-    com_m    = com.to_crs(CRS_METRIC)
-
-    # ── Comptages spatiaux par rayon ─────────────────────────────────────────
-    print(f"\n  Étape 4 — Comptages spatiaux…")
-
-    print(f"  → Espaces verts dans {RAYON_VERT_M}m…")
-    grille_m["nb_espaces_verts"] = count_within_radius(
-        grille_m, ev_m, RAYON_VERT_M, "nb_espaces_verts"
-    )
-    n_ev = (grille_m["nb_espaces_verts"] > 0).sum()
-    print(f"    Points avec ≥1 espace vert : {n_ev:,} / {len(grille_m):,}")
-
-    print(f"  → Arbres dans {RAYON_VERT_M}m…")
-    grille_m["nb_arbres"] = count_within_radius(
-        grille_m, arb_m, RAYON_VERT_M, "nb_arbres"
-    )
-    n_arb = (grille_m["nb_arbres"] > 0).sum()
-    print(f"    Points avec ≥1 arbre : {n_arb:,} / {len(grille_m):,}")
-
-    print(f"  → Commerces alimentaires dans {RAYON_ALIM_M}m (pondéré)…")
-    grille_m["score_alim_brut"] = count_within_radius(
-        grille_m, com_m, RAYON_ALIM_M, "score_alim_brut",
+    print(f"\n  Comptages spatiaux sur {len(rues_m):,} rues...")
+    rues_m["nb_espaces_verts"] = count_within_radius(rues_m, ev_m, RAYON_VERT_M, "nb_espaces_verts")
+    rues_m["nb_arbres"] = count_within_radius(rues_m, arb_m, RAYON_VERT_M, "nb_arbres")
+    rues_m["score_alim_brut"] = count_within_radius(
+        rues_m,
+        com_m,
+        RAYON_ALIM_M,
+        "score_alim_brut",
         weight_col="poids",
     )
-    n_com = (grille_m["score_alim_brut"] > 0).sum()
-    print(f"    Points avec ≥1 commerce alim : {n_com:,} / {len(grille_m):,}")
 
-    # ── Calcul SVP ────────────────────────────────────────────────────────────
-    print("\n  Étape 5 — Calcul SVP…")
-    df = grille_m.drop(columns=["geometry"]).copy()
-    df["lon"] = grille["lon"].values
-    df["lat"] = grille["lat"].values
-
+    df = pd.DataFrame(rues_m.drop(columns=["geometry"]))
     df = compute_svp(df)
-    df = finalize(df)
+    df = finalize_columns(df)
 
     validate(df)
     print_stats(df)
 
-    # ── Export ────────────────────────────────────────────────────────────────
-    print("\n  Étape 6 — Export…")
     OUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(OUT_PARQUET, index=False)
-    print(f"  Parquet : {OUT_PARQUET}  "
-          f"({OUT_PARQUET.stat().st_size / 1024:.0f} KB)")
-
+    print(f"\n  Parquet : {OUT_PARQUET}")
     to_geojson(df, OUT_GEOJSON)
 
     return df

@@ -1,18 +1,68 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import Tooltip from './Tooltip.jsx'
 import Legend from './Legend.jsx'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'
 
-export default function MapView({ geojson, selectedRue, onSelectRue }) {
+function prepareGeoJSON(geojson) {
+  if (!geojson?.features) return geojson
+
+  return {
+    ...geojson,
+    features: geojson.features.map((feature, index) => ({
+      ...feature,
+      properties: {
+        ...feature.properties,
+        __point_id:
+          feature.properties?.point_id ??
+          feature.properties?.id ??
+          `${feature.geometry?.coordinates?.[0]}_${feature.geometry?.coordinates?.[1]}_${index}`,
+      },
+    })),
+  }
+}
+
+export default function MapView({ indicator, geojson, selectedRue, onSelectRue }) {
   const mapContainer = useRef(null)
-  const map          = useRef(null)
-  const isLoaded     = useRef(false)
-  const pendingData  = useRef(null)
+  const map = useRef(null)
+  const isLoaded = useRef(false)
+  const pendingData = useRef(null)
   const [tooltip, setTooltip] = useState({ feature: null, x: 0, y: 0 })
 
-  // ── Init carte (une seule fois)
+  const cfg = getIndicatorConfig(indicator)
+  const scoreField = cfg.scoreField
+  const labelField = cfg.labelField
+  const safeGeoJSON = useMemo(() => prepareGeoJSON(geojson), [geojson])
+
+  const colorExpression = useMemo(
+    () => [
+      'match',
+      ['get', labelField],
+      'Très accessible',
+      '#22c55e',
+      'Accessible',
+      '#84cc16',
+      'Modéré',
+      '#eab308',
+      'Tendu',
+      '#f97316',
+      'Très tendu',
+      '#ef4444',
+      'Très faible',
+      '#ef4444',
+      'Faible',
+      '#f97316',
+      'Bon',
+      '#84cc16',
+      'Excellent',
+      '#22c55e',
+      '#6b7280',
+    ],
+    [labelField]
+  )
+
   useEffect(() => {
     if (map.current) return
 
@@ -28,77 +78,92 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }))
 
     map.current.on('load', () => {
-      // Source vide
       map.current.addSource('rues', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
       })
 
-      // Couche points
       map.current.addLayer({
         id: 'rues-points',
         type: 'circle',
         source: 'rues',
         paint: {
           'circle-radius': [
-            'interpolate', ['linear'], ['get', 'nb_arbres'],
-            0, 4, 10, 7, 50, 11,
+            'case',
+            ['all', ['has', 'nb_arbres'], ['!=', ['get', 'nb_arbres'], null]],
+            ['interpolate', ['linear'], ['get', 'nb_arbres'], 0, 4, 10, 7, 50, 11],
+            ['all', ['has', 'nb_transactions'], ['!=', ['get', 'nb_transactions'], null]],
+            ['interpolate', ['linear'], ['get', 'nb_transactions'], 0, 4, 10, 7, 50, 11],
+            4,
           ],
-          'circle-color': [
-            'interpolate', ['linear'], ['get', 'svp_score'],
-            0,   '#22c55e',
-            20,  '#22c55e',
-            40,  '#84cc16',
-            60,  '#eab308',
-            80,  '#f97316',
-            100, '#ef4444',
-          ],
+          'circle-color': colorExpression,
           'circle-opacity': 0.85,
           'circle-stroke-width': 1,
           'circle-stroke-color': 'rgba(255,255,255,0.15)',
         },
       })
 
-      // Couche highlight
       map.current.addLayer({
         id: 'rues-highlight',
         type: 'circle',
         source: 'rues',
-        filter: ['==', 'code_iris', ''],
+        filter: ['==', '__point_id', ''],
         paint: {
           'circle-radius': [
-            'interpolate', ['linear'], ['get', 'nb_arbres'],
-            0, 7, 10, 11, 50, 16,
+            'case',
+            ['all', ['has', 'nb_arbres'], ['!=', ['get', 'nb_arbres'], null]],
+            ['interpolate', ['linear'], ['get', 'nb_arbres'], 0, 7, 10, 11, 50, 16],
+            ['all', ['has', 'nb_transactions'], ['!=', ['get', 'nb_transactions'], null]],
+            ['interpolate', ['linear'], ['get', 'nb_transactions'], 0, 7, 10, 11, 50, 16],
+            9,
           ],
           'circle-color': '#ffffff',
-          'circle-opacity': 0.2,
-          'circle-stroke-width': 2,
+          'circle-opacity': 0.25,
+          'circle-stroke-width': 3,
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-opacity': 0.9,
+          'circle-stroke-opacity': 1,
         },
       })
 
-      // Survol
       map.current.on('mousemove', 'rues-points', (e) => {
         map.current.getCanvas().style.cursor = 'pointer'
         const feature = e.features[0]
-        map.current.setFilter('rues-highlight', ['==', 'code_iris', feature.properties.code_iris])
+        if (!feature) return
+
+        map.current.setFilter('rues-highlight', ['==', '__point_id', feature.properties.__point_id])
         setTooltip({ feature, x: e.originalEvent.clientX, y: e.originalEvent.clientY })
       })
 
       map.current.on('mouseleave', 'rues-points', () => {
         map.current.getCanvas().style.cursor = ''
-        map.current.setFilter('rues-highlight', ['==', 'code_iris', ''])
+
+        if (selectedRue?.__point_id) {
+          map.current.setFilter('rues-highlight', ['==', '__point_id', selectedRue.__point_id])
+        } else {
+          map.current.setFilter('rues-highlight', ['==', '__point_id', ''])
+        }
+
         setTooltip({ feature: null, x: 0, y: 0 })
       })
 
-      // Clic
       map.current.on('click', 'rues-points', (e) => {
-        onSelectRue(e.features[0].properties)
+        const feature = e.features[0]
+        if (!feature) return
+
+        const [lon, lat] = feature.geometry.coordinates
+        onSelectRue({
+          ...feature.properties,
+          lon_centre: lon,
+          lat_centre: lat,
+          lon,
+          lat,
+        })
+
+        map.current.setFilter('rues-highlight', ['==', '__point_id', feature.properties.__point_id])
       })
 
-      // Marquer comme chargé + injecter données en attente
       isLoaded.current = true
+
       if (pendingData.current) {
         map.current.getSource('rues').setData(pendingData.current)
         pendingData.current = null
@@ -110,38 +175,46 @@ export default function MapView({ geojson, selectedRue, onSelectRue }) {
       map.current?.remove()
       map.current = null
     }
-  }, [])
+  }, [colorExpression, onSelectRue, selectedRue, scoreField])
 
-  // ── Mise à jour GeoJSON (sécurisée)
   useEffect(() => {
-    if (!geojson) return
+    if (!map.current || !isLoaded.current) return
+
+    map.current.setPaintProperty('rues-points', 'circle-color', colorExpression)
+  }, [colorExpression, scoreField])
+
+  useEffect(() => {
+    if (!safeGeoJSON) return
 
     if (isLoaded.current && map.current) {
-      // Carte prête → injection directe
       const source = map.current.getSource('rues')
-      if (source) source.setData(geojson)
+      if (source) source.setData(safeGeoJSON)
     } else {
-      // Carte pas encore prête → on met en attente
-      pendingData.current = geojson
+      pendingData.current = safeGeoJSON
     }
-  }, [geojson])
+  }, [safeGeoJSON])
 
-  // ── Zoom sur rue sélectionnée
   useEffect(() => {
     if (!map.current || !selectedRue || !isLoaded.current) return
+
+    const lon = selectedRue.lon_centre ?? selectedRue.lon
+    const lat = selectedRue.lat_centre ?? selectedRue.lat
+    if (lon == null || lat == null) return
+
     map.current.flyTo({
-      center: [selectedRue.lon_centre, selectedRue.lat_centre],
+      center: [lon, lat],
       zoom: 15,
       duration: 800,
     })
-    map.current.setFilter('rues-highlight', ['==', 'nom_voie', selectedRue.nom_voie])
+
+    map.current.setFilter('rues-highlight', ['==', '__point_id', selectedRue.__point_id || ''])
   }, [selectedRue])
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-      <Tooltip feature={tooltip.feature} x={tooltip.x} y={tooltip.y} />
-      <Legend />
+      <Tooltip indicator={indicator} feature={tooltip.feature} x={tooltip.x} y={tooltip.y} />
+      <Legend indicator={indicator} />
     </div>
   )
 }

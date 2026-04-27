@@ -5,11 +5,12 @@ import { useGeoJSON } from './hooks/useGeoJSON.js'
 import { useStats } from './hooks/useStats.js'
 
 export default function App() {
+  const [indicator, setIndicator] = useState('svp')
   const [filters, setFilters]       = useState({})
   const [selectedRue, setSelectedRue] = useState(null)
 
-  const { data: geojson, loading: geoLoading, error: geoError } = useGeoJSON(filters)
-  const { data: stats,   loading: statsLoading }                 = useStats()
+  const { data: geojson, loading: geoLoading, error: geoError } = useGeoJSON(filters, indicator)
+  const { data: stats,   loading: statsLoading }                 = useStats(indicator)
 
   const handleSelectRue = useCallback((rue) => {
     setSelectedRue(rue)
@@ -20,11 +21,19 @@ export default function App() {
     setSelectedRue(null)
   }, [])
 
+  const handleIndicatorChange = useCallback((nextIndicator) => {
+    setIndicator(nextIndicator)
+    setFilters({})
+    setSelectedRue(null)
+  }, [])
+
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
 
       {/* Sidebar gauche */}
       <Sidebar
+        indicator={indicator}
+        onIndicatorChange={handleIndicatorChange}
         geojson={geojson}
         stats={stats}
         filters={filters}
@@ -83,6 +92,7 @@ export default function App() {
         )}
 
         <MapView
+          indicator={indicator}
           geojson={geojson}
           selectedRue={selectedRue}
           onSelectRue={handleSelectRue}

@@ -1,14 +1,17 @@
 import React, { useState, useMemo } from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
-export default function SearchBar({ geojson, onSelectRue }) {
+export default function SearchBar({ indicator, geojson, onSelectRue }) {
   const [query, setQuery]     = useState('')
   const [focused, setFocused] = useState(false)
+  const cfg = getIndicatorConfig(indicator)
+  const scoreField = cfg.scoreField
 
   const results = useMemo(() => {
     if (!geojson || query.trim().length < 2) return []
     const q = query.toUpperCase().trim()
     return geojson.features
-      .filter(f => f.properties.code_iris.includes(q))
+      .filter(f => f.properties.nom_voie.includes(q))
       .slice(0, 8)
       .map(f => f.properties)
   }, [query, geojson])
@@ -83,7 +86,7 @@ export default function SearchBar({ geojson, onSelectRue }) {
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <p style={{ fontSize: 12, fontWeight: 500, color: '#f0f2ff' }}>{rue.nom_voie}</p>
-              <p style={{ fontSize: 11, color: '#8b92b8' }}>{rue.code_postal} · Score {rue.itr_score}</p>
+              <p style={{ fontSize: 11, color: '#8b92b8' }}>{rue.code_postal} · Score {rue[scoreField]}</p>
             </div>
           ))}
         </div>

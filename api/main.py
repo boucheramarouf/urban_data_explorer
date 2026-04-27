@@ -107,14 +107,14 @@ def root():
         }
 
     # SVP — indicateur de cette branche
-    svp_path = Path("data/gold/gold_SVP/svp_par_point.parquet")
+    svp_path = Path("data/gold/gold_SVP/svp_par_rue.parquet")
     if svp_path.exists():
         try:
             import pandas as _pd
             df_svp = _pd.read_parquet(svp_path)
             status["indicateurs"]["SVP"] = {
                 "disponible"  : True,
-                "nb_points"   : len(df_svp),
+                "nb_rues"     : len(df_svp),
                 "score_median": round(df_svp["svp_score"].median(), 2),
             }
         except Exception as e:
