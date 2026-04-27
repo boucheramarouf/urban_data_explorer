@@ -9,6 +9,8 @@ Usage :
     python run_pipeline.py --indicateur ITR            # ITR uniquement, tout le pipeline
     python run_pipeline.py --bronze                    # bronze de tous les indicateurs
     python run_pipeline.py --bronze --indicateur ITR   # bronze ITR uniquement
+    python run_pipeline.py --silver --indicateur ITR   # silver ITR uniquement
+    python run_pipeline.py --gold   --indicateur ITR   # gold ITR uniquement
 """
 
 import sys
@@ -42,18 +44,28 @@ def get_indicateurs():
 
 
 # ──────────────────────────────────────────────────────────────
-# FONCTIONS PAR INDICATEUR
+# ITR — Bronze
+# Lit depuis  : data/raw/raw_ITR/
+# Ecrit dans  : data/bronze/bronze_ITR/
 # ──────────────────────────────────────────────────────────────
 
 def _bronze_itr():
-    from src.bronze.bronze_ITR.dvf_bronze              import run as dvf
-    from src.bronze.bronze_ITR.filosofi_bronze         import run as filosofi
+    from src.bronze.bronze_ITR.dvf_bronze               import run as dvf
+    from src.bronze.bronze_ITR.filosofi_bronze          import run as filosofi
     from src.bronze.bronze_ITR.logements_sociaux_bronze import run as logsoc
-    from src.bronze.bronze_ITR.iris_geo_bronze         import run as iris
+    from src.bronze.bronze_ITR.iris_geo_bronze          import run as iris
     dvf();      print()
     filosofi(); print()
     logsoc();   print()
     iris()
+
+
+# ──────────────────────────────────────────────────────────────
+# ITR — Silver
+# Lit depuis  : data/bronze/bronze_ITR/
+# Ecrit dans  : data/silver/silver_ITR/
+# Ordre obligatoire : dvf → logsoc → rue_enrichie
+# ──────────────────────────────────────────────────────────────
 
 def _silver_itr():
     from src.silver.silver_ITR.dvf_silver               import run as dvf
@@ -62,6 +74,13 @@ def _silver_itr():
     dvf();    print()
     logsoc(); print()
     rue()
+
+
+# ──────────────────────────────────────────────────────────────
+# ITR — Gold
+# Lit depuis  : data/silver/silver_ITR/rue_enrichie.parquet
+# Ecrit dans  : data/gold/gold_ITR/
+# ──────────────────────────────────────────────────────────────
 
 def _gold_itr():
     from src.gold.gold_ITR.itr_gold import run as itr
@@ -87,19 +106,18 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     t0   = time.time()
 
-    # Résoudre quels indicateurs lancer
     tous = get_indicateurs()
+
     if "--indicateur" in args:
         idx = args.index("--indicateur")
         nom = args[idx + 1].upper()
         if nom not in tous:
-            print(f"❌ Indicateur '{nom}' inconnu. Disponibles : {list(tous.keys())}")
+            print(f"Indicateur '{nom}' inconnu. Disponibles : {list(tous.keys())}")
             sys.exit(1)
         cibles = {nom: tous[nom]}
     else:
         cibles = tous
 
-    # Résoudre quelles couches lancer
     if "--bronze" in args:
         run_couche("bronze", cibles)
     elif "--silver" in args:
@@ -112,4 +130,4 @@ if __name__ == "__main__":
         run_couche("gold",   cibles)
 
     elapsed = time.time() - t0
-    print(f"\n✓ Pipeline terminé en {elapsed:.1f}s")
+    print(f"\n Pipeline termine en {elapsed:.1f}s")
