@@ -2,17 +2,20 @@ import { useState, useEffect } from 'react'
 
 const API = '/api'
 
-export function useStats() {
+export function useStats(indicator = 'IMQ') {
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
+  const prefix = indicator === 'ITR' ? 'itr' : 'imq'
+
   useEffect(() => {
-    fetch(`${API}/stats`)
+    setData(null)
+    fetch(`${API}/${prefix}/stats`)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then(json => { setData(json); setLoading(false) })
       .catch(e  => { setError(e.message); setLoading(false) })
-  }, [])
+  }, [indicator])
 
   return { data, loading, error }
 }

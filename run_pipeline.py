@@ -25,25 +25,37 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def get_indicateurs():
     return {
+        "IMQ": {
+            "label"  : "Indice de Mutation de Quartier",
+            "bronze" : _bronze_imq,
+            "silver" : _silver_imq,
+            "gold"   : _gold_imq,
+        },
         "ITR": {
             "label"  : "Indice de Tension Résidentielle",
             "bronze" : _bronze_itr,
             "silver" : _silver_itr,
             "gold"   : _gold_itr,
         },
-        # Exemple pour une autre équipe :
-        # "AIR": {
-        #     "label"  : "Qualité de l'air",
-        #     "bronze" : _bronze_air,
-        #     "silver" : _silver_air,
-        #     "gold"   : _gold_air,
-        # },
     }
 
 
 # ──────────────────────────────────────────────────────────────
 # FONCTIONS PAR INDICATEUR
 # ──────────────────────────────────────────────────────────────
+
+def _bronze_imq():
+    import runpy
+    runpy.run_path(str(Path(__file__).parent / "src" / "bronze" / "bronze_IMQ" / "bronze_ingestion.py"))
+
+def _silver_imq():
+    import runpy
+    runpy.run_path(str(Path(__file__).parent / "src" / "silver" / "silver_IMQ" / "silver_processing.py"))
+
+def _gold_imq():
+    import runpy
+    runpy.run_path(str(Path(__file__).parent / "src" / "gold" / "gold_IMQ" / "gold_imq.py"))
+
 
 def _bronze_itr():
     from src.bronze.bronze_ITR.dvf_bronze              import run as dvf

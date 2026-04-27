@@ -5,38 +5,42 @@ import { useGeoJSON } from './hooks/useGeoJSON.js'
 import { useStats } from './hooks/useStats.js'
 
 export default function App() {
-  const [filters, setFilters]       = useState({})
-  const [selectedRue, setSelectedRue] = useState(null)
+  const [indicator, setIndicator]       = useState('IMQ')  // 'IMQ' | 'ITR'
+  const [filters, setFilters]           = useState({})
+  const [selectedFeature, setSelectedFeature] = useState(null)
 
-  const { data: geojson, loading: geoLoading, error: geoError } = useGeoJSON(filters)
-  const { data: stats,   loading: statsLoading }                 = useStats()
+  const { data: geojson, loading: geoLoading, error: geoError } = useGeoJSON(indicator, filters)
+  const { data: stats } = useStats(indicator)
 
-  const handleSelectRue = useCallback((rue) => {
-    setSelectedRue(rue)
-  }, [])
+  const handleSelectFeature = useCallback((f) => setSelectedFeature(f), [])
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters)
-    setSelectedRue(null)
+    setSelectedFeature(null)
+  }, [])
+
+  const handleIndicatorChange = useCallback((ind) => {
+    setIndicator(ind)
+    setFilters({})
+    setSelectedFeature(null)
   }, [])
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
 
-      {/* Sidebar gauche */}
       <Sidebar
+        indicator={indicator}
+        onIndicatorChange={handleIndicatorChange}
         geojson={geojson}
         stats={stats}
         filters={filters}
         onFiltersChange={handleFiltersChange}
-        selectedRue={selectedRue}
-        onSelectRue={handleSelectRue}
+        selectedFeature={selectedFeature}
+        onSelectFeature={handleSelectFeature}
       />
 
-      {/* Carte principale */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
-        {/* Loading overlay */}
         {geoLoading && (
           <div style={{
             position: 'absolute', inset: 0, zIndex: 50,
@@ -54,7 +58,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Error */}
         {geoError && !geoLoading && (
           <div style={{
             position: 'absolute', inset: 0, zIndex: 50,
@@ -83,17 +86,14 @@ export default function App() {
         )}
 
         <MapView
+          indicator={indicator}
           geojson={geojson}
-          selectedRue={selectedRue}
-          onSelectRue={handleSelectRue}
-          filters={filters}
+          selectedFeature={selectedFeature}
+          onSelectFeature={handleSelectFeature}
         />
       </div>
 
-      {/* Spinner animation */}
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

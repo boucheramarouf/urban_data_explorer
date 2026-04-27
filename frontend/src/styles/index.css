@@ -16,12 +16,10 @@
   --accent:        #6c7dff;
   --accent-light:  #8b9aff;
 
-  /* ITR couleurs */
-  --itr-1: #22c55e;
-  --itr-2: #84cc16;
-  --itr-3: #eab308;
-  --itr-4: #f97316;
-  --itr-5: #ef4444;
+  /* IMQ couleurs */
+  --imq-stable:   #22c55e;
+  --imq-moderee:  #f59e0b;
+  --imq-forte:    #ef4444;
 
   --sidebar-width: 360px;
   --header-height: 56px;
