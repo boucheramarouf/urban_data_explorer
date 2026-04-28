@@ -12,4 +12,14 @@ uvicorn>=0.29.0
 
 #DB
 sqlalchemy>=2.0
+<<<<<<< Updated upstream
 psycopg[binary]>=3.1
+=======
+psycopg[binary]>=3.1
+pymongo>=4.8.0
+python-dotenv>=1.0.1
+
+# Optionnel
+matplotlib>=3.8.0
+jupyter>=1.0.0
+>>>>>>> Stashed changes

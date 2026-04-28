@@ -22,7 +22,15 @@ import pandas as pd
 import json
 from pathlib import Path
 from typing import Optional
+<<<<<<< Updated upstream
 import os
+=======
+
+import pandas as pd
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
+>>>>>>> Stashed changes
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -91,9 +99,29 @@ def get_df_sql() -> pd.DataFrame:
 # ENDPOINT 1 : redirection docs + healthcheck
 # ──────────────────────────────────────────────
 
+<<<<<<< Updated upstream
 @app.get("/", tags=["Healthcheck"])
 def root():
     return RedirectResponse(url="/docs")
+=======
+@app.get("/", include_in_schema=False)
+def root():
+  return RedirectResponse(url="/docs")
+
+
+@app.get("/health", tags=["Healthcheck"])
+def health():
+  return {
+    "status": "ok",
+    "version": "1.0.0",
+    "db_status": "ok" if is_db_ready() else "down",
+    "indicateurs": {
+      "ITR": _indicator_status("ITR", get_df_itr, "itr_score"),
+      "SVP": {"disponible": True},
+      "IAML": _indicator_status("IAML", get_df_iaml, "iaml_score"),
+    },
+  }
+>>>>>>> Stashed changes
 
 
 @app.get("/health", tags=["Healthcheck"])

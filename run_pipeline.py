@@ -17,7 +17,11 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+from dotenv import load_dotenv
+
+ROOT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT_DIR))
+load_dotenv(dotenv_path=ROOT_DIR / ".env")
 
 
 # ──────────────────────────────────────────────────────────────
@@ -89,9 +93,57 @@ def _gold_itr():
     load_gold_to_db()
 
 
+<<<<<<< Updated upstream
 # ──────────────────────────────────────────────────────────────
 # ORCHESTRATEUR
 # ──────────────────────────────────────────────────────────────
+=======
+def _bronze_svp():
+  from src.bronze.bronze_SVP.espaces_verts_bronze import run as ev
+  from src.bronze.bronze_SVP.arbres_bronze import run as arb
+  from src.bronze.bronze_SVP.commerces_alim_bronze import run as com
+  ev(); print()
+  arb(); print()
+  com()
+
+
+def _silver_svp():
+  from src.silver.silver_SVP.verdure_silver import run as verdure
+  from src.silver.silver_SVP.commerces_silver import run as com
+  verdure(); print()
+  com()
+
+
+def _gold_svp():
+  from src.gold.gold_SVP.svp_gold import run as svp
+  from src.gold.gold_SVP.load_gold_to_db import run as load_gold_to_db
+  from src.gold.gold_SVP.load_gold_to_mongo import run as load_gold_to_mongo
+  svp()
+  load_gold_to_db()
+  load_gold_to_mongo()
+
+
+def _bronze_iaml():
+  from src.bronze.bronze_IAML.transports_bronze import run as transports
+  from src.bronze.bronze_IAML.velib_bronze import run as velib
+  transports(); print()
+  velib()
+
+
+def _silver_iaml():
+  from src.silver.silver_IAML.rue_accessibilite_silver import run as rue_access
+  rue_access()
+
+
+def _gold_iaml():
+  from src.gold.gold_IAML.iaml_gold import run as iaml
+  from src.gold.gold_IAML.load_gold_to_db import run as load_gold_to_db
+  from src.gold.gold_IAML.load_gold_to_mongo import run as load_gold_to_mongo
+  iaml()
+  load_gold_to_db()
+  load_gold_to_mongo()
+
+>>>>>>> Stashed changes
 
 def run_couche(couche: str, indicateurs: dict):
     print("\n" + "=" * 50)
