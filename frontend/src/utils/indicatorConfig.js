@@ -25,8 +25,21 @@ export const INDICATOR_CONFIG = {
     geojsonPath: '/svp/geojson',
     ruesPath: '/svp/rues',
   },
+  iaml: {
+    key: 'iaml',
+    title: 'IAML Paris',
+    subtitle: "Indice d'Accessibilité Multimodale · 2021",
+    legendTitle: 'Accessibilité multimodale',
+    scoreField: 'iaml_score',
+    labelField: 'iaml_label',
+    scoreLabel: 'Score IAML',
+    labels: ['Très accessible', 'Accessible', 'Modéré', 'Tendu', 'Très tendu'],
+    statsPath: '/iaml/stats',
+    geojsonPath: '/iaml/geojson',
+    ruesPath: '/iaml/rues',
+  },
 }
 
-export function getIndicatorConfig(indicator = 'svp') {
-  return INDICATOR_CONFIG[indicator] || INDICATOR_CONFIG.svp
+export function getIndicatorConfig(indicator = 'itr') {
+  return INDICATOR_CONFIG[indicator] || INDICATOR_CONFIG.itr
 }

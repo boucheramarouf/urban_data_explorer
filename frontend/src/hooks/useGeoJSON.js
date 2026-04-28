@@ -4,9 +4,9 @@ import { getIndicatorConfig } from '../utils/indicatorConfig.js'
 const API = '/api'
 
 export function useGeoJSON(filters = {}, indicator = 'itr') {
-  const [data, setData]       = useState(null)
+  const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
+  const [error, setError] = useState(null)
 
   const cfg = getIndicatorConfig(indicator)
   const labelField = cfg.labelField
@@ -14,19 +14,30 @@ export function useGeoJSON(filters = {}, indicator = 'itr') {
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
+
     const params = new URLSearchParams()
     if (filters.arrondissement) params.set('arrondissement', filters.arrondissement)
-    if (filters[labelField])    params.set('label', filters[labelField])
+    if (filters[labelField]) params.set('label', filters[labelField])
     if (filters[`${scoreField}_min`] != null) params.set('score_min', filters[`${scoreField}_min`])
     if (filters[`${scoreField}_max`] != null) params.set('score_max', filters[`${scoreField}_max`])
     if (indicator === 'svp' && filters.has_commerce != null) params.set('has_commerce', filters.has_commerce)
 
-    const url = `${API}${cfg.geojsonPath}${params.toString() ? '?' + params.toString() : ''}`
+    const url = `${API}${cfg.geojsonPath}${params.toString() ? `?${params.toString()}` : ''}`
 
     fetch(url)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
-      .then(json => { setData(json); setLoading(false) })
-      .catch(e  => { setError(e.message); setLoading(false) })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
+      })
+      .then((json) => {
+        setData(json)
+        setLoading(false)
+      })
+      .catch((e) => {
+        setError(e.message)
+        setLoading(false)
+      })
   }, [
     indicator,
     filters.arrondissement,

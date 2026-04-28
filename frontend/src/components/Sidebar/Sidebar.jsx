@@ -25,6 +25,12 @@ const TAB = ({ label, active, onClick }) => (
   </button>
 )
 
+const INDICATOR_BUTTONS = [
+  { key: 'itr', label: 'ITR' },
+  { key: 'svp', label: 'SVP' },
+  { key: 'iaml', label: 'IAML' },
+]
+
 export default function Sidebar({
   indicator,
   onIndicatorChange,
@@ -57,38 +63,25 @@ export default function Sidebar({
         <p style={{ fontSize: 11, color: '#555e80', marginTop: 2 }}>{cfg.subtitle}</p>
 
         <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-          <button
-            onClick={() => onIndicatorChange('itr')}
-            style={{
-              flex: 1,
-              border: '1px solid #2e3348',
-              borderRadius: 6,
-              background: indicator === 'itr' ? '#6c7dff22' : '#1a1d27',
-              color: indicator === 'itr' ? '#cfd6ff' : '#8b92b8',
-              fontSize: 11,
-              fontWeight: 600,
-              padding: '6px 8px',
-              cursor: 'pointer',
-            }}
-          >
-            ITR
-          </button>
-          <button
-            onClick={() => onIndicatorChange('svp')}
-            style={{
-              flex: 1,
-              border: '1px solid #2e3348',
-              borderRadius: 6,
-              background: indicator === 'svp' ? '#6c7dff22' : '#1a1d27',
-              color: indicator === 'svp' ? '#cfd6ff' : '#8b92b8',
-              fontSize: 11,
-              fontWeight: 600,
-              padding: '6px 8px',
-              cursor: 'pointer',
-            }}
-          >
-            SVP
-          </button>
+          {INDICATOR_BUTTONS.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => onIndicatorChange(item.key)}
+              style={{
+                flex: 1,
+                border: '1px solid #2e3348',
+                borderRadius: 6,
+                background: indicator === item.key ? '#6c7dff22' : '#1a1d27',
+                color: indicator === item.key ? '#cfd6ff' : '#8b92b8',
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '6px 8px',
+                cursor: 'pointer',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -131,7 +124,7 @@ export default function Sidebar({
 
       <div style={{ padding: '10px 20px', borderTop: '1px solid #2e3348' }}>
         <p style={{ fontSize: 10, color: '#555e80', textAlign: 'center' }}>
-          Sources : Open Data Paris · IGN · INSEE · OSM · 2021
+          Sources : DVF · INSEE · Open Data Paris · IGN · OSM · 2021
         </p>
       </div>
     </div>

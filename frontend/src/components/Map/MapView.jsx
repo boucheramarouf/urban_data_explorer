@@ -6,6 +6,18 @@ import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'
 
+const LABEL_COLOR = {
+  'Très accessible': '#22c55e',
+  Accessible: '#84cc16',
+  Modéré: '#eab308',
+  Tendu: '#f97316',
+  'Très tendu': '#ef4444',
+  'Très faible': '#ef4444',
+  Faible: '#f97316',
+  Bon: '#84cc16',
+  Excellent: '#22c55e',
+}
+
 function prepareGeoJSON(geojson) {
   if (!geojson?.features) return geojson
 
@@ -29,39 +41,21 @@ export default function MapView({ indicator, geojson, selectedRue, onSelectRue }
   const map = useRef(null)
   const isLoaded = useRef(false)
   const pendingData = useRef(null)
+  const selectedRueRef = useRef(null)
   const [tooltip, setTooltip] = useState({ feature: null, x: 0, y: 0 })
 
   const cfg = getIndicatorConfig(indicator)
-  const scoreField = cfg.scoreField
   const labelField = cfg.labelField
   const safeGeoJSON = useMemo(() => prepareGeoJSON(geojson), [geojson])
 
-  const colorExpression = useMemo(
-    () => [
-      'match',
-      ['get', labelField],
-      'Très accessible',
-      '#22c55e',
-      'Accessible',
-      '#84cc16',
-      'Modéré',
-      '#eab308',
-      'Tendu',
-      '#f97316',
-      'Très tendu',
-      '#ef4444',
-      'Très faible',
-      '#ef4444',
-      'Faible',
-      '#f97316',
-      'Bon',
-      '#84cc16',
-      'Excellent',
-      '#22c55e',
-      '#6b7280',
-    ],
-    [labelField]
-  )
+  const colorExpression = useMemo(() => {
+    const values = cfg.labels.flatMap((label) => [label, LABEL_COLOR[label] || '#6b7280'])
+    return ['match', ['get', labelField], ...values, '#6b7280']
+  }, [cfg.labels, labelField])
+
+  useEffect(() => {
+    selectedRueRef.current = selectedRue
+  }, [selectedRue])
 
   useEffect(() => {
     if (map.current) return
@@ -137,8 +131,8 @@ export default function MapView({ indicator, geojson, selectedRue, onSelectRue }
       map.current.on('mouseleave', 'rues-points', () => {
         map.current.getCanvas().style.cursor = ''
 
-        if (selectedRue?.__point_id) {
-          map.current.setFilter('rues-highlight', ['==', '__point_id', selectedRue.__point_id])
+        if (selectedRueRef.current?.__point_id) {
+          map.current.setFilter('rues-highlight', ['==', '__point_id', selectedRueRef.current.__point_id])
         } else {
           map.current.setFilter('rues-highlight', ['==', '__point_id', ''])
         }
@@ -175,13 +169,12 @@ export default function MapView({ indicator, geojson, selectedRue, onSelectRue }
       map.current?.remove()
       map.current = null
     }
-  }, [colorExpression, onSelectRue, selectedRue, scoreField])
+  }, [colorExpression, onSelectRue])
 
   useEffect(() => {
     if (!map.current || !isLoaded.current) return
-
     map.current.setPaintProperty('rues-points', 'circle-color', colorExpression)
-  }, [colorExpression, scoreField])
+  }, [colorExpression])
 
   useEffect(() => {
     if (!safeGeoJSON) return

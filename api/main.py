@@ -1,353 +1,417 @@
 """
 API FastAPI — Urban Data Explorer
-===================================
-Expose les indicateurs ITR et SVP par rue parisienne.
-
-Lancement :
-    pip install fastapi uvicorn
-    uvicorn api.main:app --reload --port 8000
-
-Endpoints ITR :
-    GET /               → healthcheck ITR
-    GET /stats          → statistiques globales Paris ITR
-    GET /rues           → liste des rues avec score ITR (filtres disponibles)
-    GET /rues/{nom}     → détail d'une rue précise
-    GET /geojson        → FeatureCollection GeoJSON complet ITR
-
-Endpoints SVP (Score de Verdure et Proximité) :
-    GET /svp/           → healthcheck SVP
-    GET /svp/stats      → statistiques SVP Paris
-    GET /svp/rues       → liste des rues avec score SVP
-    GET /svp/rues/{nom} → détail SVP d'une rue
-    GET /svp/geojson    → FeatureCollection GeoJSON SVP
+=================================
+Expose les indicateurs ITR, SVP et IAML par rue parisienne.
 """
 
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import pandas as pd
 import json
+import os
 from pathlib import Path
 from typing import Optional
 
-# ── SVP router (ajout branche SVP) ────────────────────────────────────────────
+import pandas as pd
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
 from api.svp_router import router as svp_router
 
-# ──────────────────────────────────────────────
-# CONFIG
-# ──────────────────────────────────────────────
+GOLD_PARQUET_ITR = Path("data/gold/gold_ITR/itr_par_rue.parquet")
+GOLD_GEOJSON_ITR = Path("data/gold/gold_ITR/itr_par_rue.geojson")
+GOLD_PARQUET_IAML = Path("data/gold/gold_IAML/iaml_par_rue.parquet")
+GOLD_GEOJSON_IAML = Path("data/gold/gold_IAML/iaml_par_rue.geojson")
 
-GOLD_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
-GOLD_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = None
+if DATABASE_URL:
+  engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    future=True,
+  )
 
 app = FastAPI(
-    title="Urban Data Explorer — Paris",
-    description="API exposant les indicateurs ITR et SVP par rue parisienne.",
-    version="1.0.0",
+  title="Urban Data Explorer — Paris",
+  description="API exposant les indicateurs ITR, SVP et IAML par rue parisienne.",
+  version="1.0.0",
 )
 
-# CORS ouvert (pour Kepler.gl, Deck.gl, ou tout front qui consomme l'API)
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET"],
-    allow_headers=["*"],
+  CORSMiddleware,
+  allow_origins=["*"],
+  allow_methods=["GET"],
+  allow_headers=["*"],
 )
 
-# ── Routers des autres indicateurs ────────────────────────────────────────
-# SVP — Score de Verdure et Proximité (branche SVP)
 app.include_router(svp_router, prefix="/svp")
 
-
-# ──────────────────────────────────────────────
-# CHARGEMENT DATA (au démarrage, 1 seule fois)
-# ──────────────────────────────────────────────
-
-_df: Optional[pd.DataFrame] = None
-
-def get_df() -> pd.DataFrame:
-    global _df
-    if _df is None:
-        if not GOLD_PARQUET.exists():
-            raise RuntimeError(
-                f"Fichier gold introuvable : {GOLD_PARQUET}\n"
-                "Lancez d'abord : python run_pipeline.py"
-            )
-        _df = pd.read_parquet(GOLD_PARQUET)
-    return _df
+_df_itr: Optional[pd.DataFrame] = None
+_df_iaml: Optional[pd.DataFrame] = None
 
 
-# ──────────────────────────────────────────────
-# ENDPOINT 1 : healthcheck
-# ──────────────────────────────────────────────
+def is_db_ready() -> bool:
+  if engine is None:
+    return False
+  try:
+    with engine.connect() as conn:
+      conn.execute(text("SELECT 1"))
+    return True
+  except SQLAlchemyError:
+    return False
+
+
+def _load_parquet(path: Path, label: str) -> pd.DataFrame:
+  if not path.exists():
+    raise RuntimeError(f"Fichier gold introuvable pour {label} : {path}")
+  return pd.read_parquet(path)
+
+
+def _load_sql(table_name: str) -> pd.DataFrame:
+  if engine is None or not is_db_ready():
+    raise RuntimeError("Base de données indisponible")
+  return pd.read_sql(f"SELECT * FROM {table_name}", engine)
+
+
+def get_df_itr() -> pd.DataFrame:
+  global _df_itr
+  if _df_itr is None:
+    try:
+      _df_itr = _load_sql("itr_par_rue")
+    except Exception:
+      _df_itr = _load_parquet(GOLD_PARQUET_ITR, "ITR")
+  return _df_itr
+
+
+def get_df_iaml() -> pd.DataFrame:
+  global _df_iaml
+  if _df_iaml is None:
+    try:
+      _df_iaml = _load_sql("iaml_par_rue")
+    except Exception:
+      _df_iaml = _load_parquet(GOLD_PARQUET_IAML, "IAML")
+  return _df_iaml
+
+
+def _serialize_value(value):
+  if hasattr(value, "item"):
+    value = value.item()
+  if pd.isna(value):
+    return None
+  if isinstance(value, float):
+    return round(value, 4)
+  return value
+
+
+def _df_to_records(df: pd.DataFrame) -> list[dict]:
+  records = []
+  for _, row in df.iterrows():
+    records.append({col: _serialize_value(row[col]) for col in df.columns})
+  return records
+
+
+def _df_to_geojson(df: pd.DataFrame) -> dict:
+  features = []
+  prop_cols = [c for c in df.columns if c not in ("lon_centre", "lat_centre")]
+
+  for _, row in df.iterrows():
+    props = {col: _serialize_value(row[col]) for col in prop_cols}
+    features.append({
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          round(float(row["lon_centre"]), 6),
+          round(float(row["lat_centre"]), 6),
+        ],
+      },
+      "properties": props,
+    })
+
+  return {
+    "type": "FeatureCollection",
+    "count": len(features),
+    "features": features,
+  }
+
+
+def _indicator_status(name: str, getter, score_field: str) -> dict:
+  try:
+    df = getter()
+    return {
+      "disponible": True,
+      "nb_rues": len(df),
+      "score_median": round(float(df[score_field].median()), 2),
+    }
+  except Exception as exc:
+    return {"disponible": False, "erreur": str(exc)}
+
 
 @app.get("/", tags=["Healthcheck"])
+@app.get("/health", tags=["Healthcheck"])
 def root():
-    """
-    Healthcheck global. Retourne le statut de chaque indicateur disponible.
-    Fonctionne même si certains indicateurs n'ont pas encore été générés.
-    """
-    status = {"status": "ok", "version": "1.0.0", "indicateurs": {}}
+  return {
+    "status": "ok",
+    "version": "1.0.0",
+    "db_status": "ok" if is_db_ready() else "down",
+    "indicateurs": {
+      "ITR": _indicator_status("ITR", get_df_itr, "itr_score"),
+      "SVP": {"disponible": True},
+      "IAML": _indicator_status("IAML", get_df_iaml, "iaml_score"),
+    },
+  }
 
-    # ITR — optionnel (données collègues)
-    if GOLD_PARQUET.exists():
-        try:
-            df = get_df()
-            status["indicateurs"]["ITR"] = {
-                "disponible"  : True,
-                "nb_rues"     : len(df),
-                "score_median": round(df["itr_score"].median(), 2),
-            }
-        except Exception as e:
-            status["indicateurs"]["ITR"] = {"disponible": False, "erreur": str(e)}
-    else:
-        status["indicateurs"]["ITR"] = {
-            "disponible": False,
-            "message"   : "Lancer python run_pipeline.py --indicateur ITR",
-        }
-
-    # SVP — indicateur de cette branche
-    svp_path = Path("data/gold/gold_SVP/svp_par_rue.parquet")
-    if svp_path.exists():
-        try:
-            import pandas as _pd
-            df_svp = _pd.read_parquet(svp_path)
-            status["indicateurs"]["SVP"] = {
-                "disponible"  : True,
-                "nb_rues"     : len(df_svp),
-                "score_median": round(df_svp["svp_score"].median(), 2),
-            }
-        except Exception as e:
-            status["indicateurs"]["SVP"] = {"disponible": False, "erreur": str(e)}
-    else:
-        status["indicateurs"]["SVP"] = {
-            "disponible": False,
-            "message"   : "Lancer python run_pipeline.py --indicateur SVP",
-        }
-
-    return status
-
-
-# ──────────────────────────────────────────────
-# ENDPOINT 2 : stats globales
-# ──────────────────────────────────────────────
 
 @app.get("/stats", tags=["Statistiques"])
 def stats():
-    """
-    Statistiques globales sur l'ITR Paris.
-    Retourne la distribution par niveau de tension et par arrondissement.
-    """
-    df = get_df()
-
-    # Distribution par label
-    dist_label = (
-        df["itr_label"]
-        .value_counts()
-        .reindex(["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"])
-        .fillna(0)
-        .astype(int)
-        .to_dict()
+  df = get_df_itr()
+  dist_label = (
+    df["itr_label"]
+    .value_counts()
+    .reindex(["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"])
+    .fillna(0)
+    .astype(int)
+    .to_dict()
+  )
+  by_arrdt = (
+    df.groupby("arrondissement")
+    .agg(
+      nb_rues=("itr_score", "count"),
+      itr_score_median=("itr_score", "median"),
+      prix_m2_median=("prix_m2_median", "median"),
+      revenu_median=("revenu_median_uc", "median"),
     )
+    .round(2)
+    .reset_index()
+    .sort_values("itr_score_median", ascending=False)
+    .to_dict(orient="records")
+  )
 
-    # Stats par arrondissement
-    by_arrdt = (
-        df.groupby("arrondissement")
-        .agg(
-            nb_rues          = ("itr_score", "count"),
-            itr_score_median = ("itr_score", "median"),
-            prix_m2_median   = ("prix_m2_median", "median"),
-            revenu_median    = ("revenu_median_uc", "median"),
-        )
-        .round(2)
-        .reset_index()
-        .sort_values("itr_score_median", ascending=False)
-        .to_dict(orient="records")
-    )
+  return {
+    "nb_rues_total": len(df),
+    "itr_score_min": round(float(df["itr_score"].min()), 2),
+    "itr_score_max": round(float(df["itr_score"].max()), 2),
+    "itr_score_median": round(float(df["itr_score"].median()), 2),
+    "itr_score_mean": round(float(df["itr_score"].mean()), 2),
+    "distribution_label": dist_label,
+    "par_arrondissement": by_arrdt,
+  }
 
-    return {
-        "nb_rues_total"      : len(df),
-        "itr_score_min"      : round(df["itr_score"].min(), 2),
-        "itr_score_max"      : round(df["itr_score"].max(), 2),
-        "itr_score_median"   : round(df["itr_score"].median(), 2),
-        "itr_score_mean"     : round(df["itr_score"].mean(), 2),
-        "distribution_label" : dist_label,
-        "par_arrondissement" : by_arrdt,
-    }
-
-
-# ──────────────────────────────────────────────
-# ENDPOINT 3 : liste des rues (avec filtres)
-# ──────────────────────────────────────────────
 
 @app.get("/rues", tags=["Rues"])
 def list_rues(
-    arrondissement : Optional[int]   = Query(None, description="Filtrer par arrondissement (1-20)"),
-    label          : Optional[str]   = Query(None, description="Filtrer par niveau : 'Très accessible','Accessible','Modéré','Tendu','Très tendu'"),
-    score_min      : Optional[float] = Query(None, description="Score ITR minimum (0-100)"),
-    score_max      : Optional[float] = Query(None, description="Score ITR maximum (0-100)"),
-    sort_by        : str             = Query("itr_score", description="Colonne de tri : itr_score, prix_m2_median, nb_transactions"),
-    order          : str             = Query("desc", description="Ordre : asc ou desc"),
-    limit          : int             = Query(100, ge=1, le=2500, description="Nombre max de résultats"),
+  arrondissement: Optional[int] = Query(None),
+  label: Optional[str] = Query(None),
+  score_min: Optional[float] = Query(None),
+  score_max: Optional[float] = Query(None),
+  sort_by: str = Query("itr_score"),
+  order: str = Query("desc"),
+  limit: int = Query(100, ge=1, le=2500),
 ):
-    """
-    Liste les rues parisiennes avec leur score ITR.
+  df = get_df_itr().copy()
 
-    Exemples :
-    - `/rues?arrondissement=7` → rues du 7e arrondissement
-    - `/rues?label=Très tendu&limit=20` → 20 rues les plus tendues
-    - `/rues?score_min=80&sort_by=prix_m2_median` → rues très tendues triées par prix
-    """
-    df = get_df().copy()
+  if arrondissement is not None:
+    df = df[df["arrondissement"] == arrondissement]
+  if label is not None:
+    df = df[df["itr_label"] == label]
+  if score_min is not None:
+    df = df[df["itr_score"] >= score_min]
+  if score_max is not None:
+    df = df[df["itr_score"] <= score_max]
 
-    if arrondissement is not None:
-        df = df[df["arrondissement"] == arrondissement]
-    if label is not None:
-        df = df[df["itr_label"] == label]
-    if score_min is not None:
-        df = df[df["itr_score"] >= score_min]
-    if score_max is not None:
-        df = df[df["itr_score"] <= score_max]
+  valid_sort = ["itr_score", "prix_m2_median", "nb_transactions", "revenu_median_uc"]
+  if sort_by not in valid_sort:
+    raise HTTPException(status_code=400, detail=f"sort_by doit être parmi : {valid_sort}")
 
-    valid_sort = ["itr_score", "prix_m2_median", "nb_transactions", "revenu_median_uc"]
-    if sort_by not in valid_sort:
-        raise HTTPException(status_code=400, detail=f"sort_by doit être parmi : {valid_sort}")
+  df = df.sort_values(sort_by, ascending=(order == "asc")).head(limit)
+  cols_out = [
+    "nom_voie", "code_postal", "arrondissement",
+    "lon_centre", "lat_centre",
+    "prix_m2_median", "revenu_median_uc", "nb_logements_sociaux",
+    "nb_transactions", "itr_score", "itr_label",
+  ]
+  df = df[[c for c in cols_out if c in df.columns]]
 
-    ascending = order == "asc"
-    df = df.sort_values(sort_by, ascending=ascending).head(limit)
+  return {
+    "count": len(df),
+    "filtres": {
+      "arrondissement": arrondissement,
+      "label": label,
+      "score_min": score_min,
+      "score_max": score_max,
+    },
+    "rues": _df_to_records(df),
+  }
 
-    cols_out = [
-        "nom_voie", "code_postal", "arrondissement",
-        "lon_centre", "lat_centre",
-        "prix_m2_median", "revenu_median_uc", "nb_logements_sociaux",
-        "nb_transactions", "itr_score", "itr_label",
-    ]
-    df = df[[c for c in cols_out if c in df.columns]]
-
-    return {
-        "count"   : len(df),
-        "filtres" : {
-            "arrondissement": arrondissement,
-            "label"         : label,
-            "score_min"     : score_min,
-            "score_max"     : score_max,
-        },
-        "rues"    : df.to_dict(orient="records"),
-    }
-
-
-# ──────────────────────────────────────────────
-# ENDPOINT 4 : détail d'une rue
-# ──────────────────────────────────────────────
 
 @app.get("/rues/{nom_voie}", tags=["Rues"])
 def get_rue(
-    nom_voie     : str,
-    code_postal  : Optional[int] = Query(None, description="Code postal pour lever les ambiguïtés (ex: 75007)"),
+  nom_voie: str,
+  code_postal: Optional[int] = Query(None),
 ):
-    """
-    Retourne le détail complet d'une rue avec toutes les composantes ITR.
+  df = get_df_itr()
+  mask = df["nom_voie"].str.upper() == nom_voie.upper()
+  if code_postal is not None:
+    mask &= df["code_postal"] == code_postal
 
-    Exemple : `/rues/RUE DU BAC?code_postal=75007`
-    """
-    df = get_df()
+  results = df[mask]
+  if results.empty:
+    raise HTTPException(status_code=404, detail=f"Rue '{nom_voie}' introuvable.")
 
-    mask = df["nom_voie"].str.upper() == nom_voie.upper()
-    if code_postal is not None:
-        mask &= df["code_postal"] == code_postal
+  return {
+    "count": len(results),
+    "results": _df_to_records(results),
+  }
 
-    results = df[mask]
-
-    if results.empty:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Rue '{nom_voie}' introuvable. "
-                   f"Vérifiez le nom et/ou précisez le code_postal."
-        )
-
-    # Retourner toutes les colonnes (y compris les composantes intermédiaires)
-    records = []
-    for _, row in results.iterrows():
-        record = {}
-        for col in df.columns:
-            val = row[col]
-            if pd.isna(val):
-                record[col] = None
-            elif isinstance(val, float):
-                record[col] = round(val, 4)
-            else:
-                record[col] = val
-        records.append(record)
-
-    return {
-        "count"   : len(records),
-        "results" : records,
-    }
-
-
-# ──────────────────────────────────────────────
-# ENDPOINT 5 : GeoJSON complet
-# ──────────────────────────────────────────────
 
 @app.get("/geojson", tags=["Carte"])
 def geojson(
-    arrondissement : Optional[int]   = Query(None, description="Filtrer par arrondissement"),
-    label          : Optional[str]   = Query(None, description="Filtrer par niveau de tension"),
-    score_min      : Optional[float] = Query(None, description="Score ITR minimum"),
-    score_max      : Optional[float] = Query(None, description="Score ITR maximum"),
+  arrondissement: Optional[int] = Query(None),
+  label: Optional[str] = Query(None),
+  score_min: Optional[float] = Query(None),
+  score_max: Optional[float] = Query(None),
 ):
-    """
-    Retourne un GeoJSON FeatureCollection prêt pour Kepler.gl / Deck.gl / Leaflet.
+  if all(p is None for p in [arrondissement, label, score_min, score_max]) and GOLD_GEOJSON_ITR.exists():
+    with open(GOLD_GEOJSON_ITR, encoding="utf-8") as f:
+      return JSONResponse(content=json.load(f))
 
-    Le GeoJSON complet pèse ~800KB. Utilisez les filtres pour alléger si besoin.
+  df = get_df_itr().copy()
+  if arrondissement is not None:
+    df = df[df["arrondissement"] == arrondissement]
+  if label is not None:
+    df = df[df["itr_label"] == label]
+  if score_min is not None:
+    df = df[df["itr_score"] >= score_min]
+  if score_max is not None:
+    df = df[df["itr_score"] <= score_max]
 
-    Exemple : `/geojson?arrondissement=7` → GeoJSON du 7e uniquement
-    """
-    # Si pas de filtre → servir le fichier pre-généré directement (+ rapide)
-    if all(p is None for p in [arrondissement, label, score_min, score_max]):
-        if GOLD_GEOJSON.exists():
-            with open(GOLD_GEOJSON, encoding="utf-8") as f:
-                return JSONResponse(content=json.load(f))
+  return JSONResponse(content=_df_to_geojson(df))
 
-    # Sinon filtrer dynamiquement
-    df = get_df().copy()
-    if arrondissement is not None:
-        df = df[df["arrondissement"] == arrondissement]
-    if label is not None:
-        df = df[df["itr_label"] == label]
-    if score_min is not None:
-        df = df[df["itr_score"] >= score_min]
-    if score_max is not None:
-        df = df[df["itr_score"] <= score_max]
 
-    features = []
-    prop_cols = [c for c in df.columns if c not in ("lon_centre", "lat_centre")]
+@app.get("/iaml/stats", tags=["IAML"])
+def iaml_stats():
+  df = get_df_iaml()
+  dist_label = (
+    df["iaml_label"]
+    .value_counts()
+    .reindex(["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"])
+    .fillna(0)
+    .astype(int)
+    .to_dict()
+  )
+  by_arrdt = (
+    df.groupby("arrondissement")
+    .agg(
+      nb_rues=("iaml_score", "count"),
+      iaml_score_median=("iaml_score", "median"),
+      prix_m2_median=("prix_m2_median", "median"),
+      score_accessibilite_median=("score_accessibilite", "median"),
+    )
+    .round(2)
+    .reset_index()
+    .sort_values("iaml_score_median", ascending=False)
+    .to_dict(orient="records")
+  )
 
-    for _, row in df.iterrows():
-        props = {}
-        for col in prop_cols:
-            val = row[col]
-            if pd.isna(val):
-                props[col] = None
-            elif isinstance(val, float):
-                props[col] = round(val, 4)
-            else:
-                props[col] = val
+  return {
+    "nb_rues_total": len(df),
+    "iaml_score_min": round(float(df["iaml_score"].min()), 2),
+    "iaml_score_max": round(float(df["iaml_score"].max()), 2),
+    "iaml_score_median": round(float(df["iaml_score"].median()), 2),
+    "iaml_score_mean": round(float(df["iaml_score"].mean()), 2),
+    "distribution_label": dist_label,
+    "par_arrondissement": by_arrdt,
+  }
 
-        features.append({
-            "type"      : "Feature",
-            "geometry"  : {
-                "type"        : "Point",
-                "coordinates" : [
-                    round(float(row["lon_centre"]), 6),
-                    round(float(row["lat_centre"]), 6),
-                ],
-            },
-            "properties": props,
-        })
 
-    return JSONResponse(content={
-        "type"    : "FeatureCollection",
-        "count"   : len(features),
-        "features": features,
-    })
+@app.get("/iaml/rues", tags=["IAML"])
+def iaml_list_rues(
+  arrondissement: Optional[int] = Query(None),
+  label: Optional[str] = Query(None),
+  score_min: Optional[float] = Query(None),
+  score_max: Optional[float] = Query(None),
+  sort_by: str = Query("iaml_score"),
+  order: str = Query("desc"),
+  limit: int = Query(100, ge=1, le=2500),
+):
+  df = get_df_iaml().copy()
+
+  if arrondissement is not None:
+    df = df[df["arrondissement"] == arrondissement]
+  if label is not None:
+    df = df[df["iaml_label"] == label]
+  if score_min is not None:
+    df = df[df["iaml_score"] >= score_min]
+  if score_max is not None:
+    df = df[df["iaml_score"] <= score_max]
+
+  valid_sort = ["iaml_score", "prix_m2_median", "score_accessibilite", "nb_transactions"]
+  if sort_by not in valid_sort:
+    raise HTTPException(status_code=400, detail=f"sort_by doit être parmi : {valid_sort}")
+
+  df = df.sort_values(sort_by, ascending=(order == "asc")).head(limit)
+  cols_out = [
+    "nom_voie", "code_postal", "arrondissement",
+    "lon_centre", "lat_centre",
+    "prix_m2_median", "nb_transactions",
+    "nb_lignes_metro", "nb_lignes_bus", "nb_points_velib",
+    "score_accessibilite", "iaml_score", "iaml_label",
+  ]
+  df = df[[c for c in cols_out if c in df.columns]]
+
+  return {
+    "count": len(df),
+    "filtres": {
+      "arrondissement": arrondissement,
+      "label": label,
+      "score_min": score_min,
+      "score_max": score_max,
+    },
+    "rues": _df_to_records(df),
+  }
+
+
+@app.get("/iaml/rues/{nom_voie}", tags=["IAML"])
+def iaml_get_rue(
+  nom_voie: str,
+  code_postal: Optional[int] = Query(None),
+):
+  df = get_df_iaml()
+  mask = df["nom_voie"].str.upper() == nom_voie.upper()
+  if code_postal is not None:
+    mask &= df["code_postal"] == code_postal
+
+  results = df[mask]
+  if results.empty:
+    raise HTTPException(status_code=404, detail=f"Rue '{nom_voie}' introuvable pour IAML.")
+
+  return {
+    "count": len(results),
+    "results": _df_to_records(results),
+  }
+
+
+@app.get("/iaml/geojson", tags=["IAML"])
+def iaml_geojson(
+  arrondissement: Optional[int] = Query(None),
+  label: Optional[str] = Query(None),
+  score_min: Optional[float] = Query(None),
+  score_max: Optional[float] = Query(None),
+):
+  if all(p is None for p in [arrondissement, label, score_min, score_max]) and GOLD_GEOJSON_IAML.exists():
+    with open(GOLD_GEOJSON_IAML, encoding="utf-8") as f:
+      return JSONResponse(content=json.load(f))
+
+  df = get_df_iaml().copy()
+  if arrondissement is not None:
+    df = df[df["arrondissement"] == arrondissement]
+  if label is not None:
+    df = df[df["iaml_label"] == label]
+  if score_min is not None:
+    df = df[df["iaml_score"] >= score_min]
+  if score_max is not None:
+    df = df[df["iaml_score"] <= score_max]
+
+  return JSONResponse(content=_df_to_geojson(df))

@@ -32,10 +32,15 @@ COLS_A_GARDER = [
 
 
 def extract_7z(archive: Path, dest: Path) -> Path:
-    """Extrait l'archive .7z et retourne le chemin du .gpkg extrait."""
+    """Extrait uniquement le .gpkg depuis l'archive .7z."""
     dest.mkdir(parents=True, exist_ok=True)
     with py7zr.SevenZipFile(archive, mode="r") as z:
-        z.extractall(path=dest)
+        names = z.getnames()
+        gpkg_candidates = [name for name in names if name.lower().endswith(".gpkg")]
+        assert gpkg_candidates, f"Aucun .gpkg trouvé dans l'archive {archive}"
+        # Extraire uniquement le GPKG évite les erreurs Windows sur des chemins
+        # de métadonnées très longs (HTML, PDF, etc.).
+        z.extract(path=dest, targets=[gpkg_candidates[0]])
     gpkg_files = list(dest.rglob("*.gpkg"))
     assert gpkg_files, f"Aucun .gpkg trouvé dans {dest}"
     return gpkg_files[0]
