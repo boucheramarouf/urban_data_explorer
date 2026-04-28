@@ -1,5 +1,14 @@
 
 # ══════════════════════════════════════════
+# DONNÉES BRUTES (trop volumineuses pour Git)
+# ══════════════════════════════════════════
+data/raw/
+data/bronze/
+data/silver/
+# Garder seulement les données finales (gold/)
+# data/gold/  # À décommenter si besoin
+
+# ══════════════════════════════════════════
 # PYTHON
 # ══════════════════════════════════════════
 __pycache__/
@@ -38,6 +47,14 @@ frontend/.vite/
 ._*
 Thumbs.db
 desktop.ini
+
+# ══════════════════════════════════════════
+# DATA (Fichiers volumineux)
+# ══════════════════════════════════════════
+data/raw/raw_IMQ/*
+!data/raw/raw_IMQ/.gitkeep
+data/bronze/bronze_IMQ/*
+!data/bronze/bronze_IMQ/.gitkeep
 
 # ══════════════════════════════════════════
 # IDE

@@ -35,8 +35,6 @@ def _default_mongo_host() -> str:
     if Path("/.dockerenv").exists():
         return "mongo"
     return "localhost"
-
-
 def _to_documents(df: pd.DataFrame) -> list[dict]:
     clean = df.where(pd.notna(df), None)
     return clean.to_dict(orient="records")

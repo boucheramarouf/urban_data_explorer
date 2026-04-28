@@ -1,201 +1,105 @@
-# 🏙️ Urban Data Explorer — Paris
+# Urban Data Explorer - Paris
 
-> Plateforme collaborative d'analyse et de visualisation des dynamiques du logement à Paris.  
-> Architecture multi-indicateurs : chaque équipe contribue son propre indicateur dans un dossier dédié.
+Plateforme d'analyse et de visualisation des dynamiques du logement a Paris.
 
----
+Le projet contient actuellement deux indicateurs :
+- ITR : Indice de Tension Residentielle
+- IAML : Indice d'Accessibilite Multimodale au Logement
 
-## 👥 Organisation du projet
+## Structure rapide
 
-Ce dépôt est partagé entre plusieurs équipes. Chaque indicateur vit dans son propre sous-dossier `_NOM` à chaque niveau du pipeline :
-
-```
-src/bronze/bronze_MON_INDICATEUR/
-src/silver/silver_MON_INDICATEUR/
-src/gold/gold_MON_INDICATEUR/
-data/raw/raw_MON_INDICATEUR/
-data/bronze/bronze_MON_INDICATEUR/
-data/silver/silver_MON_INDICATEUR/
-data/gold/gold_MON_INDICATEUR/
-```
-
-**Indicateurs actuels :**
-
-| Indicateur | Équipe | Description |
-|---|---|---|
-| `ITR` | Équipe 1 | Indice de Tension Résidentielle par rue |
-| `MON_INDICATEUR` | Équipe N | … |
-
----
-
-## 🗂️ Architecture complète
-
-```
+```text
 urban_data_explorer/
-│
-├── data/
-│   ├── raw/
-│   │   └── raw_ITR/                        ← sources brutes ITR
-│   │       ├── DVF.csv
-│   │       ├── BASE_TD_FILO_IRIS_2021_DEC.csv
-│   │       ├── meta_BASE_TD_FILO_IRIS_2021_DEC.csv
-│   │       └── logements-sociaux-finances-a-paris.csv
-│   ├── bronze/
-│   │   └── bronze_ITR/                     ← généré automatiquement
-│   │       ├── dvf_raw.parquet
-│   │       ├── filosofi_iris_raw.parquet
-│   │       ├── logements_sociaux_raw.parquet
-│   │       └── iris_geo_raw.gpkg
-│   ├── silver/
-│   │   └── silver_ITR/                     ← généré automatiquement
-│   │       ├── dvf_appart_propre.parquet
-│   │       ├── logements_sociaux_par_iris.parquet
-│   │       └── rue_enrichie.parquet
-│   └── gold/
-│       └── gold_ITR/                       ← généré automatiquement
-│           ├── itr_par_rue.parquet
-│           └── itr_par_rue.geojson
-│
-├── src/
-│   ├── bronze/
-│   │   └── bronze_ITR/
-│   │       ├── dvf_bronze.py
-│   │       ├── filosofi_bronze.py
-│   │       ├── logements_sociaux_bronze.py
-│   │       └── iris_geo_bronze.py
-│   ├── silver/
-│   │   └── silver_ITR/
-│   │       ├── __init__.py
-│   │       ├── dvf_silver.py
-│   │       ├── logements_sociaux_silver.py
-│   │       └── rue_enrichie_silver.py
-│   └── gold/
-│       └── gold_ITR/
-│           ├── __init__.py
-│           └── itr_gold.py
-│
-├── api/
-│   ├── __init__.py
-│   └── main.py                             ← FastAPI (tous indicateurs)
-│
-├── frontend/
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.js
-│   └── src/
-│       ├── App.jsx
-│       ├── main.jsx
-│       ├── components/
-│       │   ├── Map/                        ← MapView, Tooltip, Legend
-│       │   ├── Sidebar/                    ← Sidebar, SearchBar, Filters, RueDetail
-│       │   └── Stats/                      ← StatsPanel, ArrondChart
-│       ├── hooks/                          ← useGeoJSON, useStats
-│       └── styles/
-│
-├── run_pipeline.py                         ← orchestrateur global
-├── requirements.txt
-├── .gitignore
-└── README.md
+   api/                # FastAPI
+   frontend/           # React + Vite
+   src/                # Pipelines bronze/silver/gold par indicateur
+   data/               # Donnees raw/bronze/silver/gold
+   run_pipeline.py     # Orchestrateur du pipeline
+   Dockerfile
+   Docker-compose.yml
 ```
 
----
+## Prerequis
 
-## 🧮 Indicateur ITR — Indice de Tension Résidentielle
+- Docker + Docker Compose
+- Node.js 18+ (pour lancer le frontend en local)
 
-> À quel point est-il difficile de se loger dans cette rue parisienne ?
+## Demarrage simple
 
-### Formule
-
-```
-ITR_brut(rue) =  (prix_m2_median / revenu_median_uc)
-              ×  (1 + 1 / (1 + nb_logements_sociaux))
-
-ITR_score     =  100 × (ITR_brut - min) / (max - min)
-```
-
-| Composante | Source | Granularité |
-|---|---|---|
-| `prix_m2_median` | DVF 2021 | Rue — médiane des transactions |
-| `revenu_median_uc` | Filosofi INSEE 2021 | IRIS → spatial join GPS |
-| `nb_logements_sociaux` | Open Data Paris | IRIS → spatial join GPS |
-
-### Niveaux de tension (quintiles)
-
-| Score | Label | Couleur |
-|---|---|---|
-| 0–20 | 🟢 Très accessible | `#22c55e` |
-| 20–40 | 🟡 Accessible | `#84cc16` |
-| 40–60 | 🟠 Modéré | `#eab308` |
-| 60–80 | 🔴 Tendu | `#f97316` |
-| 80–100 | 🔴 Très tendu | `#ef4444` |
-
-### Sources de données ITR
-
-| Source | Fichier | Lien |
-|---|---|---|
-| DVF | `DVF.csv` | [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/) |
-| Filosofi INSEE | `BASE_TD_FILO_IRIS_2021_DEC.csv` | [insee.fr](https://www.insee.fr/fr/statistiques/7655512) |
-| Logements sociaux | `logements-sociaux-finances-a-paris.csv` | [opendata.paris.fr](https://opendata.paris.fr) |
-| IRIS géo IGN | `IRIS-GE_3-0__GPKG_LAMB93_D075_2025-01-01.7z` | [geoservices.ign.fr](https://geoservices.ign.fr/irisge) |
-
----
-
-## 🚀 Installation & lancement
-
-### Prérequis
-- Python ≥ 3.10
-- Node.js ≥ 18
-
-### 1. Cloner le dépôt
+1. Lancer tous les services
 
 ```bash
-git clone <url-du-repo>
-cd urban_data_explorer
+docker compose up -d --build
 ```
 
-### 2. Installer les dépendances Python
+2. Verifier les services
 
 ```bash
-pip install -r requirements.txt
+docker compose ps
 ```
 
-### 3. Déposer les fichiers sources
-
-Chaque équipe dépose ses fichiers dans son dossier `data/raw/raw_NOM/` :
+3. Lancer la couche gold (alimente PostgreSQL et MongoDB)
 
 ```bash
-# Exemple pour ITR
-data/raw/raw_ITR/DVF.csv
-data/raw/raw_ITR/BASE_TD_FILO_IRIS_2021_DEC.csv
-data/raw/raw_ITR/meta_BASE_TD_FILO_IRIS_2021_DEC.csv
-data/raw/raw_ITR/logements-sociaux-finances-a-paris.csv
-# + le fichier .7z IRIS à placer aussi dans raw_ITR/
+docker compose exec -T api python run_pipeline.py --gold
 ```
 
-### 4. Lancer le pipeline
+## Services et URLs
+
+- API FastAPI : http://localhost:8000
+- Documentation API : http://localhost:8000/docs
+- Frontend (dev local) : http://localhost:5173
+- pgAdmin : http://localhost:5051
+- Mongo Express : http://localhost:8081
+
+## Base de donnees
+
+### PostgreSQL
+
+- Service Docker : `db`
+- Base : `urban_data`
+- Tables chargees par le gold :
+   - `itr_par_rue`
+   - `iaml_par_rue`
+
+Verification rapide :
 
 ```bash
-# Pipeline complet (tous les indicateurs)
-python run_pipeline.py
-
-# Un seul indicateur
-python run_pipeline.py --indicateur ITR
-
-# Ou couche par couche
-python run_pipeline.py --bronze --indicateur ITR
-python run_pipeline.py --silver --indicateur ITR
-python run_pipeline.py --gold   --indicateur ITR
+docker compose exec -T db psql -U urban_user -d urban_data -c "\\dt"
+docker compose exec -T db psql -U urban_user -d urban_data -c "SELECT 'itr_par_rue' AS table_name, COUNT(*) FROM itr_par_rue UNION ALL SELECT 'iaml_par_rue', COUNT(*) FROM iaml_par_rue;"
 ```
 
-### 5. Lancer l'API (Terminal 1)
+### MongoDB
+
+- Service Docker : `mongo`
+- Base : `urban_data`
+- Collections chargees par le gold :
+   - `itr_par_rue`
+   - `iaml_par_rue`
+
+Verification rapide :
 
 ```bash
-uvicorn api.main:app --reload --port 8000
+docker compose exec -T mongo mongosh -u urban_mongo_admin -p urban_mongo_pass --authenticationDatabase admin --eval "db = db.getSiblingDB('urban_data'); print('collections=' + db.getCollectionNames().join(',')); print('itr_count=' + db.itr_par_rue.countDocuments({})); print('iaml_count=' + db.iaml_par_rue.countDocuments({}));"
 ```
 
-→ Swagger UI : **http://localhost:8000/docs**
+## API principale
 
-### 6. Lancer le frontend (Terminal 2)
+### ITR
+
+- `GET /stats`
+- `GET /rues`
+- `GET /rues/{nom_voie}`
+- `GET /geojson`
+
+### IAML
+
+- `GET /iaml/stats`
+- `GET /iaml/rues`
+- `GET /iaml/rues/{nom_voie}`
+- `GET /iaml/geojson`
+
+## Frontend (local)
 
 ```bash
 cd frontend
@@ -203,93 +107,14 @@ npm install
 npm run dev
 ```
 
-→ Dashboard : **http://localhost:3000**
-
----
-
-## 🔌 API — Endpoints ITR
-
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Healthcheck |
-| `GET` | `/stats` | Distribution + classement arrondissements |
-| `GET` | `/rues` | Liste filtrée (arrdt, label, score, tri, limit) |
-| `GET` | `/rues/{nom_voie}` | Détail complet avec composantes ITR |
-| `GET` | `/geojson` | FeatureCollection GeoJSON pour la carte |
+## Arret des services
 
 ```bash
-# Exemples
-GET /rues?arrondissement=7&sort_by=itr_score&order=desc
-GET /rues?label=Très tendu&limit=20
-GET /geojson?arrondissement=18
-GET /rues/RUE DU BAC?code_postal=75007
+docker compose down
 ```
 
----
+## Notes
 
-## 🏗️ Pipeline Bronze / Silver / Gold
-
-### 🟫 Bronze — Ingestion brute
-
-| Table | Lignes | Traitement |
-|---|---|---|
-| `dvf_raw.parquet` | 81 516 | Typage colonnes, `date_mutation` → datetime |
-| `filosofi_iris_raw.parquet` | 16 026 | Virgules FR → points, IRIS zfill(9) |
-| `logements_sociaux_raw.parquet` | 4 174 | Parse `geo_point_2d` → `lat` / `lon` |
-| `iris_geo_raw.gpkg` | 992 IRIS | Extraction .7z, Lambert93 → WGS84 |
-
-### 🥈 Silver — Nettoyage & jointures géo
-
-| Table | Lignes | Transformation clé |
-|---|---|---|
-| `dvf_appart_propre.parquet` | 34 478 | Filtre appartements, `prix_m2`, IQR×3, spatial join → IRIS |
-| `logements_sociaux_par_iris.parquet` | 802 IRIS | Spatial join → IRIS, agrégation |
-| `rue_enrichie.parquet` | 2 387 rues | Pivot par rue, join logsoc, filtre `nb_trans ≥ 3` |
-
-### 🥇 Gold — Indicateur final
-
-| Table | Lignes | Contenu |
-|---|---|---|
-| `itr_par_rue.parquet` | 2 340 rues | Score ITR + composantes + label |
-| `itr_par_rue.geojson` | 2 340 features | Points WGS84, prêt carte & API |
-
----
-
-## 🤝 Contribuer un nouvel indicateur
-
-1. Créer tes dossiers :
-```bash
-mkdir -p data/raw/raw_MON_INDIC
-mkdir -p src/bronze/bronze_MON_INDIC
-mkdir -p src/silver/silver_MON_INDIC
-mkdir -p src/gold/gold_MON_INDIC
-```
-
-2. Implémenter tes scripts en suivant la même structure que ITR :
-   - `bronze_MON_INDIC/` → ingestion brute
-   - `silver_MON_INDIC/` → nettoyage + jointures
-   - `gold_MON_INDIC/` → calcul indicateur + export GeoJSON
-
-3. Exposer un endpoint dans `api/main.py`
-
-4. Mettre à jour ce README avec la description de ton indicateur
-
----
-
-## 🗺️ Stack technique
-
-| Couche | Technologie |
-|---|---|
-| Pipeline data | Python · Pandas · GeoPandas · PyArrow · py7zr |
-| Géospatial | Shapely · GeoPackage · GeoJSON · EPSG:4326 |
-| API | FastAPI · Uvicorn |
-| Frontend | React 18 · Vite |
-| Carte | MapLibre GL JS |
-| Graphiques | Recharts |
-| Fond de carte | MapTiler (style `dataviz-dark`) |
-
----
-
-## 📄 Licence
-
-Usage académique — données sources sous Licence Ouverte Etalab (DVF, Open Data Paris) et conditions INSEE (Filosofi).
+- Le pipeline est organise par couches : bronze, silver, gold.
+- Chaque indicateur a ses propres dossiers sous `src/` et `data/`.
+- Les commandes rapides sont aussi disponibles dans `COMMANDES.md`.

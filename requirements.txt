@@ -1,20 +1,19 @@
 # Pipeline data
-pandas>=2.0.0
-geopandas>=0.14.0
-pyarrow>=14.0.0
-py7zr>=0.20.0
-shapely>=2.0.0
-numpy>=1.26.0
+pandas==2.2.2
+geopandas==0.14.4
+pyarrow==16.1.0
+py7zr==0.21.0
+shapely==2.0.4
+numpy==1.26.4
+requests==2.32.3
+openpyxl==3.1.2
 
 # API
-fastapi>=0.110.0
-uvicorn>=0.29.0
+fastapi==0.111.0
+uvicorn==0.30.1
 
-#DB
+# Database
 sqlalchemy>=2.0
-<<<<<<< Updated upstream
-psycopg[binary]>=3.1
-=======
 psycopg[binary]>=3.1
 pymongo>=4.8.0
 python-dotenv>=1.0.1
@@ -22,4 +21,3 @@ python-dotenv>=1.0.1
 # Optionnel
 matplotlib>=3.8.0
 jupyter>=1.0.0
->>>>>>> Stashed changes
