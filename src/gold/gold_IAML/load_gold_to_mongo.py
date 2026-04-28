@@ -19,7 +19,7 @@ def _build_mongo_uri() -> str | None:
 
     user = os.getenv("MONGO_INITDB_ROOT_USERNAME")
     password = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
-    host = os.getenv("MONGO_HOST", "mongo")
+    host = _default_mongo_host()
     port = os.getenv("MONGO_PORT", "27017")
 
     if not user or not password:
@@ -28,6 +28,13 @@ def _build_mongo_uri() -> str | None:
     return f"mongodb://{user}:{password}@{host}:{port}/admin?authSource=admin"
 
 
+def _default_mongo_host() -> str:
+    host = os.getenv("MONGO_HOST")
+    if host:
+        return host
+    if Path("/.dockerenv").exists():
+        return "mongo"
+    return "localhost"
 def _to_documents(df: pd.DataFrame) -> list[dict]:
     clean = df.where(pd.notna(df), None)
     return clean.to_dict(orient="records")

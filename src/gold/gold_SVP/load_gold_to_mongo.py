@@ -1,5 +1,5 @@
 """
-Export GOLD ITR vers MongoDB.
+Export GOLD SVP vers MongoDB.
 """
 
 import os
@@ -8,8 +8,8 @@ from pathlib import Path
 import pandas as pd
 from pymongo import MongoClient
 
-OUT_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
-COLLECTION_NAME = "itr_par_rue"
+OUT_PARQUET = Path("data/gold/gold_SVP/svp_par_rue.parquet")
+COLLECTION_NAME = "svp_par_rue"
 
 
 def _build_mongo_uri() -> str | None:
@@ -35,6 +35,8 @@ def _default_mongo_host() -> str:
     if Path("/.dockerenv").exists():
         return "mongo"
     return "localhost"
+
+
 def _to_documents(df: pd.DataFrame) -> list[dict]:
     clean = df.where(pd.notna(df), None)
     return clean.to_dict(orient="records")
@@ -45,12 +47,12 @@ def run() -> None:
     uri = _build_mongo_uri()
 
     if not uri:
-        print("  [SKIP] Variables Mongo absentes : export Mongo ITR ignore.")
+        print("  [SKIP] Variables Mongo absentes : export Mongo SVP ignore.")
         return
 
     if not OUT_PARQUET.exists():
         raise FileNotFoundError(
-            f"Parquet gold introuvable: {OUT_PARQUET}. Lancez d'abord la couche gold ITR."
+            f"Parquet gold introuvable: {OUT_PARQUET}. Lancez d'abord la couche gold SVP."
         )
 
     df = pd.read_parquet(OUT_PARQUET)
@@ -66,7 +68,7 @@ def run() -> None:
 
     collection.create_index("nom_voie")
     collection.create_index("arrondissement")
-    collection.create_index("itr_score")
+    collection.create_index("svp_score")
 
     print(f"  [OK] Collection Mongo '{COLLECTION_NAME}' alimentee ({len(docs):,} documents)")
 

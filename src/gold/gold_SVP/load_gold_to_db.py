@@ -1,8 +1,5 @@
 """
-Export GOLD ITR vers PostgreSQL.
-
-Ce script lit le parquet GOLD et charge son contenu dans la table
-`itr_par_rue` via SQLAlchemy + pandas.to_sql.
+Export GOLD SVP vers PostgreSQL.
 """
 
 import os
@@ -11,12 +8,11 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy import create_engine
 
-OUT_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
-TABLE_NAME = "itr_par_rue"
+OUT_PARQUET = Path("data/gold/gold_SVP/svp_par_rue.parquet")
+TABLE_NAME = "svp_par_rue"
 
 
 def _normalize_db_url(db_url: str) -> str:
-    # Compat avec une URL "postgresql://" sans driver explicite.
     if db_url.startswith("postgresql://"):
         return db_url.replace("postgresql://", "postgresql+psycopg://", 1)
     return db_url
@@ -51,12 +47,12 @@ def _build_db_url() -> str | None:
 def run() -> None:
     db_url = _build_db_url()
     if not db_url:
-        print("  [SKIP] Variables PostgreSQL absentes : export SQL ignore.")
+        print("  [SKIP] Variables PostgreSQL absentes : export SQL SVP ignore.")
         return
 
     if not OUT_PARQUET.exists():
         raise FileNotFoundError(
-            f"Parquet gold introuvable: {OUT_PARQUET}. Lancez d'abord la couche gold."
+            f"Parquet gold introuvable: {OUT_PARQUET}. Lancez d'abord la couche gold SVP."
         )
 
     df = pd.read_parquet(OUT_PARQUET)
@@ -71,7 +67,7 @@ def run() -> None:
         chunksize=1000,
     )
 
-    print(f"  [OK] Table SQL '{TABLE_NAME}' alimentée ({len(df):,} lignes)")
+    print(f"  [OK] Table SQL '{TABLE_NAME}' alimentee ({len(df):,} lignes)")
 
 
 if __name__ == "__main__":

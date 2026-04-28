@@ -29,11 +29,11 @@ import warnings
 from pathlib import Path
 from typing import Optional
 
-import pandas as pd
 import geopandas as gpd
-from fastapi import FastAPI, HTTPException, Query, APIRouter
+import pandas as pd
+from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 # ─── Import optionnel de sqlalchemy ──────────────────────────────────────────
 try:
@@ -54,12 +54,12 @@ except ImportError:
 # ─── Chemins ──────────────────────────────────────────────────────────────────
 BASE = Path(__file__).parent.parent
 
-IMQ_PARQUET    = BASE / "data" / "gold" / "gold_IMQ" / "imq_par_iris.parquet"
-IMQ_GEOJSON    = BASE / "data" / "raw"  / "raw_IMQ"  / "iris_paris.geojson"
-ITR_PARQUET    = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.parquet"
-ITR_GEOJSON    = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.geojson"
-IAML_PARQUET   = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.parquet"
-IAML_GEOJSON   = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.geojson"
+IMQ_PARQUET = BASE / "data" / "gold" / "gold_IMQ" / "imq_par_iris.parquet"
+IMQ_GEOJSON = BASE / "data" / "raw" / "raw_IMQ" / "iris_paris.geojson"
+ITR_PARQUET = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.parquet"
+ITR_GEOJSON = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.geojson"
+IAML_PARQUET = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.parquet"
+IAML_GEOJSON = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.geojson"
 
 # ─── Base de données (optionnelle) ────────────────────────────────────────────
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -106,7 +106,7 @@ def _serialize_value(value):
     return value
 
 
-def _df_to_records(df: pd.DataFrame) -> list:
+def _df_to_records(df: pd.DataFrame) -> list[dict]:
     records = []
     for _, row in df.iterrows():
         records.append({col: _serialize_value(row[col]) for col in df.columns})
@@ -119,23 +119,61 @@ def _df_to_geojson(df: pd.DataFrame) -> dict:
 
     for _, row in df.iterrows():
         props = {col: _serialize_value(row[col]) for col in prop_cols}
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [
-                    round(float(row["lon_centre"]), 6),
-                    round(float(row["lat_centre"]), 6),
-                ],
-            },
-            "properties": props,
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        round(float(row["lon_centre"]), 6),
+                        round(float(row["lat_centre"]), 6),
+                    ],
+                },
+                "properties": props,
+            }
+        )
 
     return {
         "type": "FeatureCollection",
         "count": len(features),
         "features": features,
     }
+
+
+_df_itr: Optional[pd.DataFrame] = None
+_df_iaml: Optional[pd.DataFrame] = None
+
+
+def get_df_itr() -> pd.DataFrame:
+    global _df_itr
+    if _df_itr is None:
+        try:
+            _df_itr = _load_sql("itr_par_rue")
+        except Exception:
+            _df_itr = _load_parquet(ITR_PARQUET, "ITR")
+    return _df_itr
+
+
+def get_df_iaml() -> pd.DataFrame:
+    global _df_iaml
+    if _df_iaml is None:
+        try:
+            _df_iaml = _load_sql("iaml_par_rue")
+        except Exception:
+            _df_iaml = _load_parquet(IAML_PARQUET, "IAML")
+    return _df_iaml
+
+
+def _indicator_status(name: str, getter, score_field: str) -> dict:
+    try:
+        df = getter()
+        return {
+            "disponible": True,
+            "nb_rues": len(df),
+            "score_median": round(float(df[score_field].median()), 2),
+        }
+    except Exception as exc:
+        return {"disponible": False, "erreur": str(exc)}
 
 
 # ─── Chargement IMQ ──────────────────────────────────────────────────────────
@@ -161,24 +199,9 @@ print(f"  {len(gdf_imq)} IRIS IMQ chargés · prêts à servir")
 # ─── Chargement ITR ──────────────────────────────────────────────────────────
 print("Chargement des données ITR...")
 
-df_itr = pd.read_parquet(ITR_PARQUET)
 _itr_geojson_full = json.loads(ITR_GEOJSON.read_text(encoding="utf-8"))
-
-print(f"  {len(df_itr)} rues ITR chargées · prêtes à servir")
-
-
-# ─── Chargement IAML (lazy) ───────────────────────────────────────────────────
-_df_iaml: Optional[pd.DataFrame] = None
-
-
-def get_df_iaml() -> pd.DataFrame:
-    global _df_iaml
-    if _df_iaml is None:
-        try:
-            _df_iaml = _load_sql("iaml_par_rue")
-        except Exception:
-            _df_iaml = _load_parquet(IAML_PARQUET, "IAML")
-    return _df_iaml
+itr_count = len(_itr_geojson_full.get("features", []))
+print(f"  {itr_count} rues ITR chargées · prêtes à servir")
 
 
 # ─── App ──────────────────────────────────────────────────────────────────────
@@ -199,19 +222,22 @@ if _SVP_ROUTER_AVAILABLE:
     app.include_router(svp_router, prefix="/svp")
 
 
-# ─── Healthcheck ──────────────────────────────────────────────────────────────
-@app.get("/", tags=["Healthcheck"])
-@app.get("/health", tags=["Healthcheck"])
+@app.get("/", include_in_schema=False)
 def root():
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/health", tags=["Healthcheck"])
+def health():
     return {
         "status": "ok",
         "version": "1.0.0",
         "db_status": "ok" if is_db_ready() else "down",
         "indicateurs": {
             "IMQ": {"disponible": IMQ_PARQUET.exists(), "nb_iris": len(df_imq)},
-            "ITR": {"disponible": ITR_PARQUET.exists(), "nb_rues": len(df_itr)},
+            "ITR": _indicator_status("ITR", get_df_itr, "itr_score"),
             "SVP": {"disponible": _SVP_ROUTER_AVAILABLE},
-            "IAML": {"disponible": IAML_PARQUET.exists()},
+            "IAML": _indicator_status("IAML", get_df_iaml, "iaml_score"),
         },
     }
 
@@ -292,10 +318,11 @@ def itr_geojson(
 
 @itr_router.get("/stats")
 def itr_stats():
-    dist = df_itr["itr_label"].value_counts().to_dict()
+    df = get_df_itr()
+    dist = df["itr_label"].value_counts().to_dict()
 
     par_arr = (
-        df_itr.groupby("arrondissement")
+        df.groupby("arrondissement")
         .agg(
             itr_score_median=("itr_score", "median"),
             nb_rues=("nom_voie", "count"),
@@ -306,8 +333,8 @@ def itr_stats():
     )
 
     return {
-        "nb_rues_total":      len(df_itr),
-        "itr_score_median":   round(float(df_itr["itr_score"].median()), 1),
+        "nb_rues_total":      len(df),
+        "itr_score_median":   round(float(df["itr_score"].median()), 1),
         "distribution_label": dist,
         "par_arrondissement": par_arr,
     }
@@ -323,7 +350,7 @@ def itr_list_rues(
     order:          str             = Query("desc"),
     limit:          int             = Query(100, ge=1, le=2500),
 ):
-    df = df_itr.copy()
+    df = get_df_itr().copy()
 
     if arrondissement is not None:
         df = df[df["arrondissement"] == arrondissement]
@@ -355,11 +382,12 @@ def itr_get_rue(
     nom_voie:    str,
     code_postal: Optional[int] = Query(None),
 ):
-    mask = df_itr["nom_voie"].str.upper() == nom_voie.upper()
+    df = get_df_itr()
+    mask = df["nom_voie"].str.upper() == nom_voie.upper()
     if code_postal is not None:
-        mask &= df_itr["code_postal"] == code_postal
+        mask &= df["code_postal"] == code_postal
 
-    results = df_itr[mask]
+    results = df[mask]
     if results.empty:
         raise HTTPException(status_code=404, detail=f"Rue '{nom_voie}' introuvable.")
 

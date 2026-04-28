@@ -19,36 +19,40 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+from dotenv import load_dotenv
+
+ROOT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT_DIR))
+load_dotenv(dotenv_path=ROOT_DIR / ".env")
 
 
 def get_indicateurs():
-    return {
-        "IMQ": {
-            "label"  : "Indice de Mutation de Quartier",
-            "bronze" : _bronze_imq,
-            "silver" : _silver_imq,
-            "gold"   : _gold_imq,
-        },
-        "ITR": {
-            "label"  : "Indice de Tension Résidentielle",
-            "bronze" : _bronze_itr,
-            "silver" : _silver_itr,
-            "gold"   : _gold_itr,
-        },
-        "SVP": {
-            "label": "Score de Verdure et Proximité",
-            "bronze": _bronze_svp,
-            "silver": _silver_svp,
-            "gold": _gold_svp,
-        },
-        "IAML": {
-            "label": "Indice d'Accessibilité Multimodale au Logement",
-            "bronze": _bronze_iaml,
-            "silver": _silver_iaml,
-            "gold": _gold_iaml,
-        },
-    }
+  return {
+    "IMQ": {
+      "label": "Indice de Mutation de Quartier",
+      "bronze": _bronze_imq,
+      "silver": _silver_imq,
+      "gold": _gold_imq,
+    },
+    "ITR": {
+      "label": "Indice de Tension Résidentielle",
+      "bronze": _bronze_itr,
+      "silver": _silver_itr,
+      "gold": _gold_itr,
+    },
+    "SVP": {
+      "label": "Score de Verdure et Proximité",
+      "bronze": _bronze_svp,
+      "silver": _silver_svp,
+      "gold": _gold_svp,
+    },
+    "IAML": {
+      "label": "Indice d'Accessibilité Multimodale au Logement",
+      "bronze": _bronze_iaml,
+      "silver": _silver_iaml,
+      "gold": _gold_iaml,
+    },
+  }
 
 
 # ──────────────────────────────────────────────────────────────
@@ -56,16 +60,16 @@ def get_indicateurs():
 # ──────────────────────────────────────────────────────────────
 
 def _bronze_imq():
-    import runpy
-    runpy.run_path(str(Path(__file__).parent / "src" / "bronze" / "bronze_IMQ" / "bronze_ingestion.py"))
+  import runpy
+  runpy.run_path(str(Path(__file__).parent / "src" / "bronze" / "bronze_IMQ" / "bronze_ingestion.py"))
 
 def _silver_imq():
-    import runpy
-    runpy.run_path(str(Path(__file__).parent / "src" / "silver" / "silver_IMQ" / "silver_processing.py"))
+  import runpy
+  runpy.run_path(str(Path(__file__).parent / "src" / "silver" / "silver_IMQ" / "silver_processing.py"))
 
 def _gold_imq():
-    import runpy
-    runpy.run_path(str(Path(__file__).parent / "src" / "gold" / "gold_IMQ" / "gold_imq.py"))
+  import runpy
+  runpy.run_path(str(Path(__file__).parent / "src" / "gold" / "gold_IMQ" / "gold_imq.py"))
 
 
 def _bronze_itr():
@@ -115,7 +119,11 @@ def _silver_svp():
 
 def _gold_svp():
   from src.gold.gold_SVP.svp_gold import run as svp
+  from src.gold.gold_SVP.load_gold_to_db import run as load_gold_to_db
+  from src.gold.gold_SVP.load_gold_to_mongo import run as load_gold_to_mongo
   svp()
+  load_gold_to_db()
+  load_gold_to_mongo()
 
 
 def _bronze_iaml():
@@ -138,6 +146,10 @@ def _gold_iaml():
   load_gold_to_db()
   load_gold_to_mongo()
 
+
+# ──────────────────────────────────────────────────────────────
+# ORCHESTRATEUR
+# ──────────────────────────────────────────────────────────────
 
 def run_couche(couche: str, indicateurs: dict):
   print("\n" + "=" * 50)
