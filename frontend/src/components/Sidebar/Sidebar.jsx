@@ -3,6 +3,7 @@ import SearchBar from './SearchBar.jsx'
 import Filters from './Filters.jsx'
 import FeatureDetail from './RueDetail.jsx'
 import StatsPanel from '../Stats/StatsPanel.jsx'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const TAB = ({ label, active, onClick }) => (
   <button onClick={onClick} style={{
@@ -16,17 +17,33 @@ const TAB = ({ label, active, onClick }) => (
 
 const IndicatorBtn = ({ label, active, onClick }) => (
   <button onClick={onClick} style={{
-    flex: 1, padding: '6px 0', fontSize: 12, fontWeight: active ? 700 : 400,
-    background: active ? '#6c7dff' : 'transparent',
-    color: active ? '#fff' : '#8b92b8',
+    flex: 1, padding: '6px 0', fontSize: 11, fontWeight: active ? 700 : 400,
+    background: active ? '#6c7dff22' : '#1a1d27',
+    color: active ? '#cfd6ff' : '#8b92b8',
     border: `1px solid ${active ? '#6c7dff' : '#2e3348'}`,
     borderRadius: 6, cursor: 'pointer', transition: 'all 0.2s',
   }}>{label}</button>
 )
 
-export default function Sidebar({ indicator, onIndicatorChange, geojson, stats, filters, onFiltersChange, selectedFeature, onSelectFeature }) {
-  const [tab, setTab] = useState('filtres')
+const INDICATOR_BUTTONS = [
+  { key: 'IMQ',  label: 'IMQ' },
+  { key: 'ITR',  label: 'ITR' },
+  { key: 'SVP',  label: 'SVP' },
+  { key: 'IAML', label: 'IAML' },
+]
 
+export default function Sidebar({
+  indicator,
+  onIndicatorChange,
+  geojson,
+  stats,
+  filters,
+  onFiltersChange,
+  selectedFeature,
+  onSelectFeature,
+}) {
+  const [tab, setTab] = useState('filtres')
+  const cfg = getIndicatorConfig(indicator)
   const isIMQ = indicator === 'IMQ'
   const count = geojson?.features?.length || 0
 
@@ -41,15 +58,19 @@ export default function Sidebar({ indicator, onIndicatorChange, geojson, stats, 
         <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f2ff', letterSpacing: '-0.02em' }}>
           Urban <span style={{ color: '#6c7dff' }}>Data Explorer</span>
         </p>
-        <p style={{ fontSize: 11, color: '#555e80', marginTop: 2 }}>
-          {isIMQ ? 'Indice de Mutation de Quartier · Paris' : 'Indice de Tension Résidentielle · Paris'}
-        </p>
-      </div>
+        <p style={{ fontSize: 11, color: '#555e80', marginTop: 2 }}>{cfg.subtitle}</p>
 
-      {/* Switcher IMQ / ITR */}
-      <div style={{ padding: '10px 20px', borderBottom: '1px solid #2e3348', display: 'flex', gap: 8 }}>
-        <IndicatorBtn label="IMQ · Mutation" active={isIMQ}      onClick={() => onIndicatorChange('IMQ')} />
-        <IndicatorBtn label="ITR · Tension"  active={!isIMQ}     onClick={() => onIndicatorChange('ITR')} />
+        {/* Switcher IMQ / ITR / SVP / IAML */}
+        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+          {INDICATOR_BUTTONS.map(item => (
+            <IndicatorBtn
+              key={item.key}
+              label={item.label}
+              active={indicator === item.key}
+              onClick={() => onIndicatorChange(item.key)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -86,12 +107,11 @@ export default function Sidebar({ indicator, onIndicatorChange, geojson, stats, 
         {tab === 'stats' && <StatsPanel indicator={indicator} stats={stats} />}
       </div>
 
-      {/* Footer */}
       <div style={{ padding: '10px 20px', borderTop: '1px solid #2e3348' }}>
         <p style={{ fontSize: 10, color: '#555e80', textAlign: 'center' }}>
           {isIMQ
             ? 'Sources : DVF · SIRENE · Filosofi INSEE · LOVAC · IGN'
-            : 'Sources : DVF · Filosofi INSEE · Open Data Paris · IGN'}
+            : 'Sources : DVF · INSEE · Open Data Paris · IGN · OSM · 2021'}
         </p>
       </div>
     </div>

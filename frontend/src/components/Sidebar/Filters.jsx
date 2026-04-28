@@ -1,11 +1,10 @@
 import React from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const ARRONDISSEMENTS = Array.from({ length: 20 }, (_, i) => i + 1)
 
 const IMQ_INTERPRETATIONS = ['Stable', 'Mutation modérée', 'Mutation forte']
 const IMQ_COLOR = { 'Stable': '#22c55e', 'Mutation modérée': '#f59e0b', 'Mutation forte': '#ef4444' }
-
-const ITR_LABELS = ['Très accessible', 'Accessible', 'Modéré', 'Tendu', 'Très tendu']
 
 const Select = ({ label, value, onChange, children }) => (
   <div style={{ marginBottom: 12 }}>
@@ -18,10 +17,43 @@ const Select = ({ label, value, onChange, children }) => (
   </div>
 )
 
+const CommerceToggle = ({ value, onChange }) => (
+  <div style={{ marginBottom: 12 }}>
+    <p style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+      Présence commerce
+    </p>
+    <div style={{ display: 'flex', gap: 6 }}>
+      {[
+        { label: 'Tous', value: null },
+        { label: 'Avec', value: 'true' },
+        { label: 'Sans', value: 'false' },
+      ].map(opt => (
+        <button
+          key={String(opt.value)}
+          onClick={() => onChange(opt.value)}
+          style={{
+            flex: 1,
+            background: String(value) === String(opt.value) ? '#6c7dff22' : 'transparent',
+            border: `1px solid ${String(value) === String(opt.value) ? '#6c7dff' : '#2e3348'}`,
+            borderRadius: 6,
+            color: String(value) === String(opt.value) ? '#6c7dff' : '#8b92b8',
+            fontSize: 11, padding: '5px 0', cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  </div>
+)
+
 export default function Filters({ indicator, filters, onChange }) {
+  const cfg = getIndicatorConfig(indicator)
   const set = (key) => (val) => onChange({ ...filters, [key]: val })
   const isIMQ = indicator === 'IMQ'
-  const hasFilter = filters.arrondissement || filters.interpretation || filters.label
+
+  const hasFilter = filters.arrondissement || filters.interpretation || filters.label ||
+    filters[cfg.labelField] || (indicator === 'SVP' && filters.has_commerce != null)
 
   return (
     <div style={{ padding: '0 0 4px' }}>
@@ -49,10 +81,15 @@ export default function Filters({ indicator, filters, onChange }) {
           )}
         </>
       ) : (
-        <Select label="Niveau de tension" value={filters.label || ''} onChange={set('label')}>
-          <option value="">Tous les niveaux</option>
-          {ITR_LABELS.map(l => <option key={l} value={l}>{l}</option>)}
-        </Select>
+        <>
+          <Select label="Niveau" value={filters[cfg.labelField] || ''} onChange={set(cfg.labelField)}>
+            <option value="">Tous les niveaux</option>
+            {cfg.labels.map(l => <option key={l} value={l}>{l}</option>)}
+          </Select>
+          {indicator === 'SVP' && (
+            <CommerceToggle value={filters.has_commerce ?? null} onChange={set('has_commerce')} />
+          )}
+        </>
       )}
 
       {hasFilter && (

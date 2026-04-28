@@ -1,5 +1,14 @@
 
 # ══════════════════════════════════════════
+# DONNÉES BRUTES (trop volumineuses pour Git)
+# ══════════════════════════════════════════
+data/raw/
+data/bronze/
+data/silver/
+# Garder seulement les données finales (gold/)
+# data/gold/  # À décommenter si besoin
+
+# ══════════════════════════════════════════
 # PYTHON
 # ══════════════════════════════════════════
 __pycache__/

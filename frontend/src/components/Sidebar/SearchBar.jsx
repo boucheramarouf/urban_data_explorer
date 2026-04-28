@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react'
+import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 export default function SearchBar({ indicator, geojson, onSelectFeature }) {
   const [query, setQuery]     = useState('')
   const [focused, setFocused] = useState(false)
+  const cfg = getIndicatorConfig(indicator)
+  const scoreField = cfg.scoreField
 
   const isIMQ = indicator === 'IMQ'
 
@@ -62,7 +65,9 @@ export default function SearchBar({ indicator, geojson, onSelectFeature }) {
                 {isIMQ ? item.iris_nom : item.nom_voie}
               </p>
               <p style={{ fontSize: 11, color: '#8b92b8' }}>
-                arr. {item.arrondissement} · {isIMQ ? `IMQ ${item.score_imq_100}/100` : `ITR ${item.itr_score}/100`}
+                {isIMQ
+                  ? `arr. ${item.arrondissement} · IMQ ${item.score_imq_100}/100`
+                  : `${item.code_postal} · Score ${item[scoreField]}`}
               </p>
             </div>
           ))}
