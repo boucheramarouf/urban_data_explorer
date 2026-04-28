@@ -42,12 +42,10 @@ desktop.ini
 # ══════════════════════════════════════════
 # DATA (Fichiers volumineux)
 # ══════════════════════════════════════════
-data/raw/raw_IMQ/
-data/raw/raw_ITR/
-*.gpkg
-*.csv
-*.xlsx
-*.parquet
+data/raw/raw_IMQ/*
+!data/raw/raw_IMQ/.gitkeep
+data/bronze/bronze_IMQ/*
+!data/bronze/bronze_IMQ/.gitkeep
 
 # ══════════════════════════════════════════
 # IDE
