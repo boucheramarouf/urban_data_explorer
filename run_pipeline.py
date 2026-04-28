@@ -18,6 +18,13 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
+<<<<<<< Updated upstream
+=======
+
+ROOT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT_DIR))
+load_dotenv(dotenv_path=ROOT_DIR / ".env")
+>>>>>>> Stashed changes
 
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT_DIR))

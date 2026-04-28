@@ -30,6 +30,9 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -100,12 +103,17 @@ def get_df_sql() -> pd.DataFrame:
 # ──────────────────────────────────────────────
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 @app.get("/", tags=["Healthcheck"])
 def root():
     return RedirectResponse(url="/docs")
 =======
 @app.get("/", include_in_schema=False)
 def root():
+=======
+@app.get("/", include_in_schema=False)
+def root():
+>>>>>>> Stashed changes
   return RedirectResponse(url="/docs")
 
 
