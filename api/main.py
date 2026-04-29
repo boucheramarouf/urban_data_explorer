@@ -34,6 +34,11 @@ import pandas as pd
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+<<<<<<< Updated upstream
+=======
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+>>>>>>> Stashed changes
 
 # ─── Import optionnel de sqlalchemy ──────────────────────────────────────────
 try:
@@ -176,6 +181,7 @@ def _indicator_status(name: str, getter, score_field: str) -> dict:
         return {"disponible": False, "erreur": str(exc)}
 
 
+<<<<<<< Updated upstream
 # ─── Chargement IMQ ──────────────────────────────────────────────────────────
 print("Chargement des données IMQ...")
 
@@ -225,6 +231,25 @@ if _SVP_ROUTER_AVAILABLE:
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")
+=======
+@app.get("/", include_in_schema=False)
+def root():
+  return RedirectResponse(url="/docs")
+
+
+@app.get("/health", tags=["Healthcheck"])
+def health():
+  return {
+    "status": "ok",
+    "version": "1.0.0",
+    "db_status": "ok" if is_db_ready() else "down",
+    "indicateurs": {
+      "ITR": _indicator_status("ITR", get_df_itr, "itr_score"),
+      "SVP": {"disponible": True},
+      "IAML": _indicator_status("IAML", get_df_iaml, "iaml_score"),
+    },
+  }
+>>>>>>> Stashed changes
 
 
 @app.get("/health", tags=["Healthcheck"])

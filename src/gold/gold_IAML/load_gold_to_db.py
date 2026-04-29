@@ -56,7 +56,10 @@ def run() -> None:
         )
 
     df = pd.read_parquet(OUT_PARQUET)
+<<<<<<< Updated upstream
 <<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
     engine = create_engine(db_url, pool_pre_ping=True, future=True)
 
     df.to_sql(
