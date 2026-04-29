@@ -30,7 +30,7 @@ print("=" * 60)
 try:
     dvf_path = os.path.join(RAW_IMQ, "dvf_plus_d75.gpkg")
     print(f"  Lecture : {dvf_path}")
-    gdf = gpd.read_file(dvf_path, layer="mutation")
+    gdf = gpd.read_file(dvf_path, layer="mutation", where="coddep = '75'")
     print(f"  Lignes brutes      : {len(gdf):,}")
 
     # Filtre Paris (coddep = '75')

@@ -4,15 +4,20 @@ run_pipeline.py
 Orchestrateur global — Urban Data Explorer.
 Chaque indicateur vit dans son propre sous-dossier.
 
+Le chargement vers PostgreSQL et MongoDB est automatique après la couche GOLD.
+Utiliser les scripts consolidés :
+  - src/gold/load_to_postgres.py
+  - src/gold/load_to_mongo.py
+
 Usage :
-    python run_pipeline.py
-    python run_pipeline.py --indicateur ITR
+    python run_pipeline.py                    # Exécute bronze → silver → gold → chargement DB
+    python run_pipeline.py --indicateur ITR   # Un seul indicateur (bronze → silver → gold → DB)
     python run_pipeline.py --indicateur SVP
     python run_pipeline.py --indicateur IAML
     python run_pipeline.py --indicateur IMQ
-    python run_pipeline.py --bronze
-    python run_pipeline.py --silver
-    python run_pipeline.py --gold
+    python run_pipeline.py --bronze           # Couche bronze uniquement
+    python run_pipeline.py --silver           # Couche silver uniquement
+    python run_pipeline.py --gold             # Couche gold + chargement DB
 """
 
 import sys
@@ -94,11 +99,7 @@ def _silver_itr():
 
 def _gold_itr():
   from src.gold.gold_ITR.itr_gold import run as itr
-  from src.gold.gold_ITR.load_gold_to_db import run as load_gold_to_db
-  from src.gold.gold_ITR.load_gold_to_mongo import run as load_gold_to_mongo
   itr()
-  load_gold_to_db()
-  load_gold_to_mongo()
 
 
 def _bronze_svp():
@@ -119,11 +120,7 @@ def _silver_svp():
 
 def _gold_svp():
   from src.gold.gold_SVP.svp_gold import run as svp
-  from src.gold.gold_SVP.load_gold_to_db import run as load_gold_to_db
-  from src.gold.gold_SVP.load_gold_to_mongo import run as load_gold_to_mongo
   svp()
-  load_gold_to_db()
-  load_gold_to_mongo()
 
 
 def _bronze_iaml():
@@ -140,11 +137,24 @@ def _silver_iaml():
 
 def _gold_iaml():
   from src.gold.gold_IAML.iaml_gold import run as iaml
-  from src.gold.gold_IAML.load_gold_to_db import run as load_gold_to_db
-  from src.gold.gold_IAML.load_gold_to_mongo import run as load_gold_to_mongo
   iaml()
-  load_gold_to_db()
-  load_gold_to_mongo()
+
+
+# ──────────────────────────────────────────────────────────────
+# CHARGEMENT VERS BASES DE DONNÉES
+# ──────────────────────────────────────────────────────────────
+
+def load_to_databases():
+  """Charge tous les indicateurs vers PostgreSQL et MongoDB."""
+  print("\n" + "=" * 50)
+  print("  CHARGEMENT VERS BASES DE DONNÉES")
+  print("=" * 50)
+  
+  from src.gold.load_to_postgres import run as load_postgres
+  from src.gold.load_to_mongo import run as load_mongo
+  
+  load_postgres()
+  load_mongo()
 
 
 # ──────────────────────────────────────────────────────────────
@@ -181,10 +191,12 @@ if __name__ == "__main__":
     run_couche("silver", cibles)
   elif "--gold" in args:
     run_couche("gold", cibles)
+    load_to_databases()
   else:
     run_couche("bronze", cibles)
     run_couche("silver", cibles)
     run_couche("gold", cibles)
+    load_to_databases()
 
   elapsed = time.time() - t0
   print(f"\nPipeline termine en {elapsed:.1f}s")
