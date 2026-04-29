@@ -21,8 +21,10 @@
   --score-red:   #dc2626;
   --score-blue:  #2563eb;
 
-  --sidebar-w:   272px;
-  --nav-h:       56px;
+  --sidebar-w:      272px;
+  --sidebar-width:  360px;
+  --nav-h:          56px;
+  --header-height:  56px;
 
   --shadow-sm:   0 1px 3px rgba(28,25,22,0.08);
   --shadow-md:   0 4px 16px rgba(28,25,22,0.10);
