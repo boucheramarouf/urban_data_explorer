@@ -26,6 +26,18 @@ urban_data_explorer/
 
 ## Demarrage simple
 
+### Première utilisation : Préparation des données géométriques IRIS
+
+Avant de lancer l'API pour la première fois, vous devez extraire la géométrie des IRIS depuis l'archive IGN :
+
+```bash
+python prepare_iris_geojson.py
+```
+
+Cela génère le fichier `data/raw/raw_IMQ/iris_paris.geojson` (1.9 MB) contenant les 992 IRIS de Paris, nécessaire pour charger l'API IMQ.
+
+### Lancement
+
 1. Lancer tous les services
 
 ```bash

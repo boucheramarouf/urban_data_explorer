@@ -1,5 +1,11 @@
 # Commandes utiles (simple)
 
+## 0) PREMIÈRE UTILISATION UNIQUEMENT : Préparer les données IRIS
+```powershell
+python prepare_iris_geojson.py
+```
+(Génère `data/raw/raw_IMQ/iris_paris.geojson` — obligatoire pour l'API)
+
 ## 1) Démarrer tout le stack Docker
 ```powershell
 docker compose up -d --build
