@@ -80,7 +80,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./data:/data:ro
+      - ./data:/app/data
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 volumes:
