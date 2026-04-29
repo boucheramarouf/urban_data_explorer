@@ -2,105 +2,109 @@ import React from 'react'
 import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
 const ARRONDISSEMENTS = Array.from({ length: 20 }, (_, i) => i + 1)
-
-const IMQ_INTERPRETATIONS = ['Stable', 'Mutation modérée', 'Mutation forte']
-const IMQ_COLOR = { 'Stable': '#22c55e', 'Mutation modérée': '#f59e0b', 'Mutation forte': '#ef4444' }
+const IMQ_LABELS = ['Stable', 'Mutation modérée', 'Mutation forte']
+const IMQ_COLORS = { Stable: '#16a34a', 'Mutation modérée': '#d97706', 'Mutation forte': '#dc2626' }
 
 const Select = ({ label, value, onChange, children }) => (
   <div style={{ marginBottom: 12 }}>
-    <p style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</p>
-    <select value={value} onChange={e => onChange(e.target.value || null)} style={{
-      width: '100%', background: '#1a1d27', border: '1px solid #2e3348',
-      borderRadius: 7, color: '#f0f2ff', fontSize: 12, padding: '7px 10px',
-      outline: 'none', cursor: 'pointer', appearance: 'none',
-    }}>{children}</select>
-  </div>
-)
-
-const CommerceToggle = ({ value, onChange }) => (
-  <div style={{ marginBottom: 12 }}>
-    <p style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-      Présence commerce
-    </p>
-    <div style={{ display: 'flex', gap: 6 }}>
-      {[
-        { label: 'Tous', value: null },
-        { label: 'Avec', value: 'true' },
-        { label: 'Sans', value: 'false' },
-      ].map(opt => (
-        <button
-          key={String(opt.value)}
-          onClick={() => onChange(opt.value)}
-          style={{
-            flex: 1,
-            background: String(value) === String(opt.value) ? '#6c7dff22' : 'transparent',
-            border: `1px solid ${String(value) === String(opt.value) ? '#6c7dff' : '#2e3348'}`,
-            borderRadius: 6,
-            color: String(value) === String(opt.value) ? '#6c7dff' : '#8b92b8',
-            fontSize: 11, padding: '5px 0', cursor: 'pointer', transition: 'all 0.15s',
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</p>
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value || null)}
+      style={{
+        width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+        borderRadius: 7, color: 'var(--text)', fontSize: 12, padding: '7px 10px',
+        outline: 'none', cursor: 'pointer', appearance: 'none',
+      }}
+    >{children}</select>
   </div>
 )
 
 export default function Filters({ indicator, filters, onChange }) {
-  const cfg = getIndicatorConfig(indicator)
-  const set = (key) => (val) => onChange({ ...filters, [key]: val })
+  const cfg   = getIndicatorConfig(indicator)
   const isIMQ = indicator === 'IMQ'
+  const set   = key => val => onChange({ ...filters, [key]: val })
 
-  const hasFilter = filters.arrondissement || filters.interpretation || filters.label ||
+  const hasFilter = filters.arrondissement || filters.interpretation ||
     filters[cfg.labelField] || (indicator === 'SVP' && filters.has_commerce != null)
 
   return (
-    <div style={{ padding: '0 0 4px' }}>
+    <div>
       <Select label="Arrondissement" value={filters.arrondissement || ''} onChange={set('arrondissement')}>
         <option value="">Tous les arrondissements</option>
-        {ARRONDISSEMENTS.map(n => <option key={n} value={n}>{n}e arrondissement</option>)}
+        {ARRONDISSEMENTS.map(n => <option key={n} value={n}>{n}e arr.</option>)}
       </Select>
 
       {isIMQ ? (
         <>
-          <Select label="Interprétation IMQ" value={filters.interpretation || ''} onChange={set('interpretation')}>
-            <option value="">Toutes les interprétations</option>
-            {IMQ_INTERPRETATIONS.map(l => <option key={l} value={l}>{l}</option>)}
-          </Select>
-          {!filters.interpretation && (
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-              {IMQ_INTERPRETATIONS.map(l => (
-                <button key={l} onClick={() => onChange({ ...filters, interpretation: l })} style={{
-                  flex: 1, background: IMQ_COLOR[l] + '22', border: `1px solid ${IMQ_COLOR[l]}55`,
-                  borderRadius: 6, color: IMQ_COLOR[l], fontSize: 10, fontWeight: 600,
-                  padding: '5px 2px', cursor: 'pointer', textAlign: 'center',
-                }}>{l}</button>
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Interprétation</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {IMQ_LABELS.map(l => (
+                <button
+                  key={l}
+                  onClick={() => onChange({ ...filters, interpretation: filters.interpretation === l ? null : l })}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: filters.interpretation === l ? IMQ_COLORS[l] + '15' : 'var(--bg)',
+                    border: `1px solid ${filters.interpretation === l ? IMQ_COLORS[l] + '60' : 'var(--border)'}`,
+                    borderRadius: 7, padding: '7px 10px', cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: IMQ_COLORS[l], flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: filters.interpretation === l ? 600 : 400 }}>{l}</span>
+                </button>
               ))}
             </div>
-          )}
+          </div>
         </>
       ) : (
         <>
-          <Select label="Niveau" value={filters[cfg.labelField] || ''} onChange={set(cfg.labelField)}>
-            <option value="">Tous les niveaux</option>
-            {cfg.labels.map(l => <option key={l} value={l}>{l}</option>)}
-          </Select>
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Niveau</p>
+            <select
+              value={filters[cfg.labelField] || ''}
+              onChange={e => onChange({ ...filters, [cfg.labelField]: e.target.value || null })}
+              style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 7, color: 'var(--text)', fontSize: 12, padding: '7px 10px', outline: 'none', cursor: 'pointer', appearance: 'none' }}
+            >
+              <option value="">Tous les niveaux</option>
+              {cfg.labels.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
           {indicator === 'SVP' && (
-            <CommerceToggle value={filters.has_commerce ?? null} onChange={set('has_commerce')} />
+            <div style={{ marginBottom: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Commerce</p>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[{ l: 'Tous', v: null }, { l: 'Avec', v: 'true' }, { l: 'Sans', v: 'false' }].map(opt => (
+                  <button
+                    key={String(opt.v)}
+                    onClick={() => onChange({ ...filters, has_commerce: opt.v })}
+                    style={{
+                      flex: 1, padding: '6px 4px', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 500,
+                      transition: 'all 0.15s', border: 'none',
+                      background: String(filters.has_commerce) === String(opt.v) ? 'var(--text)' : 'var(--bg)',
+                      color: String(filters.has_commerce) === String(opt.v) ? '#fff' : 'var(--text-2)',
+                    }}
+                  >{opt.l}</button>
+                ))}
+              </div>
+            </div>
           )}
         </>
       )}
 
       {hasFilter && (
-        <button onClick={() => onChange({})} style={{
-          width: '100%', background: 'transparent', border: '1px solid #2e3348',
-          borderRadius: 7, color: '#8b92b8', fontSize: 12, padding: '6px',
-          cursor: 'pointer', marginTop: 4, transition: 'all 0.15s',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = '#6c7dff'; e.currentTarget.style.color = '#6c7dff' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = '#2e3348'; e.currentTarget.style.color = '#8b92b8' }}
-        >Réinitialiser les filtres</button>
+        <button
+          onClick={() => onChange({})}
+          style={{
+            width: '100%', background: 'none', border: '1px solid var(--border)', borderRadius: 7,
+            color: 'var(--text-2)', fontSize: 12, padding: '7px', cursor: 'pointer', transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text)'; e.currentTarget.style.color = 'var(--text)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-2)' }}
+        >
+          Réinitialiser les filtres
+        </button>
       )}
     </div>
   )

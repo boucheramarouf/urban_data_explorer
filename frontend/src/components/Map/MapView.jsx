@@ -4,44 +4,37 @@ import Tooltip from './Tooltip.jsx'
 import Legend from './Legend.jsx'
 import { getIndicatorConfig } from '../../utils/indicatorConfig.js'
 
-const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'
+// Free light map — no API key needed
+const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
 
 const LABEL_COLOR = {
-  'Très accessible': '#22c55e',
-  Accessible: '#84cc16',
-  Modéré: '#eab308',
-  Tendu: '#f97316',
-  'Très tendu': '#ef4444',
-  'Très faible': '#ef4444',
-  Faible: '#f97316',
-  Bon: '#84cc16',
-  Excellent: '#22c55e',
+  'Très accessible': '#16a34a', Accessible: '#65a30d', Modéré: '#d97706',
+  Tendu: '#ea580c', 'Très tendu': '#dc2626',
+  'Très faible': '#dc2626', Faible: '#ea580c', Bon: '#65a30d', Excellent: '#16a34a',
 }
 
 function prepareGeoJSON(geojson) {
   if (!geojson?.features) return geojson
   return {
     ...geojson,
-    features: geojson.features.map((feature, index) => ({
-      ...feature,
+    features: geojson.features.map((f, i) => ({
+      ...f,
       properties: {
-        ...feature.properties,
-        __point_id:
-          feature.properties?.point_id ??
-          feature.properties?.id ??
-          `${feature.geometry?.coordinates?.[0]}_${feature.geometry?.coordinates?.[1]}_${index}`,
+        ...f.properties,
+        __point_id: f.properties?.point_id ?? f.properties?.id ??
+          `${f.geometry?.coordinates?.[0]}_${f.geometry?.coordinates?.[1]}_${i}`,
       },
     })),
   }
 }
 
 export default function MapView({ indicator, geojson, selectedFeature, onSelectFeature }) {
-  const mapContainer  = useRef(null)
-  const map           = useRef(null)
-  const isLoaded      = useRef(false)
-  const pendingData   = useRef(null)
-  const currentMode   = useRef(null)
-  const selectedRef   = useRef(null)
+  const mapContainer = useRef(null)
+  const map          = useRef(null)
+  const isLoaded     = useRef(false)
+  const pendingData  = useRef(null)
+  const currentMode  = useRef(null)
+  const selectedRef  = useRef(null)
   const [tooltip, setTooltip] = useState({ feature: null, x: 0, y: 0 })
 
   const cfg        = getIndicatorConfig(indicator)
@@ -50,55 +43,46 @@ export default function MapView({ indicator, geojson, selectedFeature, onSelectF
   const safeGeoJSON = useMemo(() => prepareGeoJSON(geojson), [geojson])
 
   const colorExpression = useMemo(() => {
-    const values = cfg.labels.flatMap(label => [label, LABEL_COLOR[label] || '#6b7280'])
-    return ['match', ['get', labelField], ...values, '#6b7280']
+    const values = cfg.labels.flatMap(l => [l, LABEL_COLOR[l] || '#9ca3af'])
+    return ['match', ['get', labelField], ...values, '#9ca3af']
   }, [cfg.labels, labelField])
 
-  useEffect(() => {
-    selectedRef.current = selectedFeature
-  }, [selectedFeature])
+  useEffect(() => { selectedRef.current = selectedFeature }, [selectedFeature])
 
-  // ── Supprime tous les layers liés aux deux sources
   const removeLayers = (m) => {
-    const ids = [
-      'imq-fill', 'imq-border', 'imq-highlight',
-      'rues-points', 'rues-highlight',
-    ]
-    ids.forEach(id => { if (m.getLayer(id)) m.removeLayer(id) })
+    ['imq-fill', 'imq-border', 'imq-highlight', 'rues-points', 'rues-highlight']
+      .forEach(id => { if (m.getLayer(id)) m.removeLayer(id) })
     ;['data-imq', 'rues'].forEach(src => { if (m.getSource(src)) m.removeSource(src) })
   }
 
-  // ── Construit les layers selon l'indicateur
   const buildLayers = (mode, data) => {
     const m = map.current
     if (!m) return
-
     removeLayers(m)
     currentMode.current = mode
 
     if (mode === 'IMQ') {
       m.addSource('data-imq', { type: 'geojson', data })
-
       m.addLayer({
         id: 'imq-fill', type: 'fill', source: 'data-imq',
         paint: {
-          'fill-color': [
-            'interpolate', ['linear'], ['get', 'score_imq_100'],
-            0, '#22c55e', 33, '#22c55e', 34, '#f59e0b', 66, '#f59e0b', 67, '#ef4444', 100, '#ef4444',
-          ],
-          'fill-opacity': 0.65,
+          'fill-color': ['match', ['get', 'interpretation'],
+            'Stable', '#16a34a',
+            'Mutation modérée', '#d97706',
+            'Mutation forte', '#dc2626',
+            '#9ca3af'],
+          'fill-opacity': 0.55,
         },
       })
       m.addLayer({
         id: 'imq-border', type: 'line', source: 'data-imq',
-        paint: { 'line-color': 'rgba(255,255,255,0.15)', 'line-width': 0.8 },
+        paint: { 'line-color': 'rgba(28,25,22,0.15)', 'line-width': 0.8 },
       })
       m.addLayer({
         id: 'imq-highlight', type: 'line', source: 'data-imq',
         filter: ['==', 'iris_code', ''],
-        paint: { 'line-color': '#ffffff', 'line-width': 2.5, 'line-opacity': 0.9 },
+        paint: { 'line-color': '#1C1916', 'line-width': 2.5, 'line-opacity': 0.8 },
       })
-
       m.on('mousemove', 'imq-fill', (e) => {
         m.getCanvas().style.cursor = 'pointer'
         setTooltip({ feature: e.features[0], x: e.originalEvent.clientX, y: e.originalEvent.clientY })
@@ -108,96 +92,71 @@ export default function MapView({ indicator, geojson, selectedFeature, onSelectF
         setTooltip({ feature: null, x: 0, y: 0 })
       })
       m.on('click', 'imq-fill', (e) => {
-        const props = e.features[0].properties
-        onSelectFeature(props)
-        if (m.getLayer('imq-highlight'))
-          m.setFilter('imq-highlight', ['==', 'iris_code', props.iris_code])
+        const p = e.features[0].properties
+        onSelectFeature(p)
+        if (m.getLayer('imq-highlight')) m.setFilter('imq-highlight', ['==', 'iris_code', p.iris_code])
       })
 
     } else {
-      // ITR / SVP / IAML — cercles
       const prepared = prepareGeoJSON(data)
       m.addSource('rues', { type: 'geojson', data: prepared })
-
       m.addLayer({
         id: 'rues-points', type: 'circle', source: 'rues',
         paint: {
           'circle-radius': [
             'case',
-            ['all', ['has', 'nb_arbres'], ['!=', ['get', 'nb_arbres'], null]],
-            ['interpolate', ['linear'], ['get', 'nb_arbres'], 0, 4, 10, 7, 50, 11],
-            ['all', ['has', 'nb_transactions'], ['!=', ['get', 'nb_transactions'], null]],
-            ['interpolate', ['linear'], ['get', 'nb_transactions'], 0, 4, 10, 7, 50, 11],
+            ['has', 'nb_arbres'], ['interpolate', ['linear'], ['get', 'nb_arbres'], 0, 4, 10, 7, 50, 11],
+            ['has', 'nb_transactions'], ['interpolate', ['linear'], ['get', 'nb_transactions'], 0, 4, 10, 7, 50, 11],
             4,
           ],
           'circle-color': colorExpression,
-          'circle-opacity': 0.85,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': 'rgba(255,255,255,0.15)',
+          'circle-opacity': 0.82,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(255,255,255,0.8)',
         },
       })
       m.addLayer({
         id: 'rues-highlight', type: 'circle', source: 'rues',
         filter: ['==', '__point_id', ''],
         paint: {
-          'circle-radius': [
-            'case',
-            ['all', ['has', 'nb_arbres'], ['!=', ['get', 'nb_arbres'], null]],
-            ['interpolate', ['linear'], ['get', 'nb_arbres'], 0, 7, 10, 11, 50, 16],
-            ['all', ['has', 'nb_transactions'], ['!=', ['get', 'nb_transactions'], null]],
-            ['interpolate', ['linear'], ['get', 'nb_transactions'], 0, 7, 10, 11, 50, 16],
-            9,
-          ],
-          'circle-color': '#ffffff',
-          'circle-opacity': 0.25,
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-opacity': 1,
+          'circle-radius': 14,
+          'circle-color': 'transparent',
+          'circle-stroke-width': 2.5,
+          'circle-stroke-color': '#1C1916',
         },
       })
-
       m.on('mousemove', 'rues-points', (e) => {
         m.getCanvas().style.cursor = 'pointer'
-        const feature = e.features[0]
-        if (!feature) return
-        m.setFilter('rues-highlight', ['==', '__point_id', feature.properties.__point_id])
-        setTooltip({ feature, x: e.originalEvent.clientX, y: e.originalEvent.clientY })
+        const f = e.features[0]
+        if (!f) return
+        m.setFilter('rues-highlight', ['==', '__point_id', f.properties.__point_id])
+        setTooltip({ feature: f, x: e.originalEvent.clientX, y: e.originalEvent.clientY })
       })
       m.on('mouseleave', 'rues-points', () => {
         m.getCanvas().style.cursor = ''
         const sel = selectedRef.current
-        if (sel?.__point_id) {
-          m.setFilter('rues-highlight', ['==', '__point_id', sel.__point_id])
-        } else {
-          m.setFilter('rues-highlight', ['==', '__point_id', ''])
-        }
+        m.setFilter('rues-highlight', sel?.__point_id ? ['==', '__point_id', sel.__point_id] : ['==', '__point_id', ''])
         setTooltip({ feature: null, x: 0, y: 0 })
       })
       m.on('click', 'rues-points', (e) => {
-        const feature = e.features[0]
-        if (!feature) return
-        const [lon, lat] = feature.geometry.coordinates
-        onSelectFeature({ ...feature.properties, lon_centre: lon, lat_centre: lat })
-        m.setFilter('rues-highlight', ['==', '__point_id', feature.properties.__point_id])
+        const f = e.features[0]
+        if (!f) return
+        const [lon, lat] = f.geometry.coordinates
+        onSelectFeature({ ...f.properties, lon_centre: lon, lat_centre: lat })
+        m.setFilter('rues-highlight', ['==', '__point_id', f.properties.__point_id])
       })
     }
   }
 
-  // ── Init carte
   useEffect(() => {
     if (map.current) return
-
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`,
+      style: MAP_STYLE,
       center: [2.3488, 48.8534],
-      zoom: 12,
-      minZoom: 11,
-      maxZoom: 18,
+      zoom: 12, minZoom: 11, maxZoom: 18,
     })
-
     map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }))
-
     map.current.on('load', () => {
       isLoaded.current = true
       if (pendingData.current) {
@@ -205,46 +164,32 @@ export default function MapView({ indicator, geojson, selectedFeature, onSelectF
         pendingData.current = null
       }
     })
-
-    return () => {
-      isLoaded.current = false
-      map.current?.remove()
-      map.current = null
-    }
+    return () => { isLoaded.current = false; map.current?.remove(); map.current = null }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Mise à jour couleurs quand colorExpression change (mode cercle)
   useEffect(() => {
     if (!map.current || !isLoaded.current) return
-    if (map.current.getLayer('rues-points')) {
+    if (map.current.getLayer('rues-points'))
       map.current.setPaintProperty('rues-points', 'circle-color', colorExpression)
-    }
   }, [colorExpression])
 
-  // ── Mise à jour quand geojson ou indicator changent
   useEffect(() => {
     if (!safeGeoJSON) return
     const mode = indicator
-
     if (isLoaded.current && map.current) {
       if (currentMode.current !== mode) {
         buildLayers(mode, safeGeoJSON)
-      } else if (mode === 'IMQ') {
-        const source = map.current.getSource('data-imq')
-        if (source) source.setData(safeGeoJSON)
       } else {
-        const source = map.current.getSource('rues')
-        if (source) source.setData(safeGeoJSON)
+        const src = map.current.getSource(mode === 'IMQ' ? 'data-imq' : 'rues')
+        if (src) src.setData(safeGeoJSON)
       }
     } else {
       pendingData.current = { mode, geojson: safeGeoJSON }
     }
   }, [safeGeoJSON, indicator]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Zoom sur feature sélectionnée
   useEffect(() => {
     if (!map.current || !selectedFeature || !isLoaded.current) return
-
     if (indicator === 'IMQ') {
       map.current.flyTo({ center: [selectedFeature.lon_centre, selectedFeature.lat_centre], zoom: 14, duration: 800 })
       if (map.current.getLayer('imq-highlight'))
@@ -252,8 +197,7 @@ export default function MapView({ indicator, geojson, selectedFeature, onSelectF
     } else {
       const lon = selectedFeature.lon_centre ?? selectedFeature.lon
       const lat = selectedFeature.lat_centre ?? selectedFeature.lat
-      if (lon != null && lat != null)
-        map.current.flyTo({ center: [lon, lat], zoom: 15, duration: 800 })
+      if (lon != null && lat != null) map.current.flyTo({ center: [lon, lat], zoom: 15, duration: 800 })
       if (map.current.getLayer('rues-highlight'))
         map.current.setFilter('rues-highlight', ['==', '__point_id', selectedFeature.__point_id || ''])
     }
