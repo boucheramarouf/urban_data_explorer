@@ -55,9 +55,9 @@ except ImportError:
 BASE = Path(__file__).parent.parent
 
 IMQ_PARQUET = BASE / "data" / "gold" / "gold_IMQ" / "imq_par_iris.parquet"
-IMQ_GEOJSON = BASE / "data" / "raw" / "raw_IMQ" / "iris_paris.geojson"
-ITR_PARQUET = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.parquet"
-ITR_GEOJSON = BASE / "data" / "gold" / "gold_ITR" / "itr_par_rue.geojson"
+IMQ_GEOJSON = BASE / "data" / "raw"  / "raw_IMQ"  / "iris_paris.geojson"
+ITR_PARQUET = BASE / "data" / "gold" / "gold_ITR"  / "itr_par_rue.parquet"
+ITR_GEOJSON = BASE / "data" / "gold" / "gold_ITR"  / "itr_par_rue.geojson"
 IAML_PARQUET = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.parquet"
 IAML_GEOJSON = BASE / "data" / "gold" / "gold_IAML" / "iaml_par_rue.geojson"
 
@@ -178,30 +178,37 @@ def _indicator_status(name: str, getter, score_field: str) -> dict:
 
 # ─── Chargement IMQ ──────────────────────────────────────────────────────────
 print("Chargement des données IMQ...")
+try:
+    df_imq = pd.read_parquet(IMQ_PARQUET)
+    df_imq["iris_code"] = df_imq["iris_code"].astype(str).str.zfill(9)
+    df_imq["arrondissement"] = df_imq["arr_insee"].astype(str).str[-2:].astype(int)
+    df_imq["score_imq_100"] = (df_imq["score_imq"] * 100).round(1)
 
-df_imq = pd.read_parquet(IMQ_PARQUET)
-df_imq["iris_code"] = df_imq["iris_code"].astype(str).str.zfill(9)
-df_imq["arrondissement"] = df_imq["arr_insee"].astype(str).str[-2:].astype(int)
-df_imq["score_imq_100"] = (df_imq["score_imq"] * 100).round(1)
+    gdf_iris = gpd.read_file(IMQ_GEOJSON)
+    gdf_iris["iris_code"] = gdf_iris["code_iris"].astype(str).str.zfill(9)
+    gdf_imq = gdf_iris[["iris_code", "geometry"]].merge(df_imq, on="iris_code", how="inner")
 
-gdf_iris = gpd.read_file(IMQ_GEOJSON)
-gdf_iris["iris_code"] = gdf_iris["code_iris"].astype(str).str.zfill(9)
-gdf_imq = gdf_iris[["iris_code", "geometry"]].merge(df_imq, on="iris_code", how="inner")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        gdf_imq["lon_centre"] = gdf_imq.geometry.centroid.x.round(6)
+        gdf_imq["lat_centre"] = gdf_imq.geometry.centroid.y.round(6)
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    gdf_imq["lon_centre"] = gdf_imq.geometry.centroid.x.round(6)
-    gdf_imq["lat_centre"] = gdf_imq.geometry.centroid.y.round(6)
-
-print(f"  {len(gdf_imq)} IRIS IMQ chargés · prêts à servir")
+    print(f"  {len(gdf_imq)} IRIS IMQ chargés · prêts à servir")
+except FileNotFoundError:
+    gdf_imq = None
+    df_imq = None
+    print("  [SKIP] Données IMQ non disponibles, lancer le pipeline d'abord")
 
 
 # ─── Chargement ITR ──────────────────────────────────────────────────────────
 print("Chargement des données ITR...")
-
-_itr_geojson_full = json.loads(ITR_GEOJSON.read_text(encoding="utf-8"))
-itr_count = len(_itr_geojson_full.get("features", []))
-print(f"  {itr_count} rues ITR chargées · prêtes à servir")
+try:
+    _itr_geojson_full = json.loads(ITR_GEOJSON.read_text(encoding="utf-8"))
+    itr_count = len(_itr_geojson_full.get("features", []))
+    print(f"  {itr_count} rues ITR chargées · prêtes à servir")
+except FileNotFoundError:
+    _itr_geojson_full = None
+    print("  [SKIP] Données ITR non disponibles, lancer le pipeline d'abord")
 
 
 # ─── App ──────────────────────────────────────────────────────────────────────
@@ -234,7 +241,7 @@ def health():
         "version": "1.0.0",
         "db_status": "ok" if is_db_ready() else "down",
         "indicateurs": {
-            "IMQ": {"disponible": IMQ_PARQUET.exists(), "nb_iris": len(df_imq)},
+            "IMQ": {"disponible": IMQ_PARQUET.exists(), "nb_iris": len(df_imq) if df_imq is not None else 0},
             "ITR": _indicator_status("ITR", get_df_itr, "itr_score"),
             "SVP": {"disponible": _SVP_ROUTER_AVAILABLE},
             "IAML": _indicator_status("IAML", get_df_iaml, "iaml_score"),
@@ -253,6 +260,9 @@ def imq_geojson(
     score_min:      Optional[float] = Query(None, ge=0, le=100),
     score_max:      Optional[float] = Query(None, ge=0, le=100),
 ):
+    if gdf_imq is None:
+        raise HTTPException(status_code=503, detail="Données IMQ non disponibles, lancer le pipeline d'abord")
+
     mask = pd.Series([True] * len(gdf_imq), index=gdf_imq.index)
 
     if arrondissement is not None:
@@ -269,6 +279,9 @@ def imq_geojson(
 
 @imq_router.get("/stats")
 def imq_stats():
+    if df_imq is None:
+        raise HTTPException(status_code=503, detail="Données IMQ non disponibles, lancer le pipeline d'abord")
+
     score_median = round(float(df_imq["score_imq_100"].median()), 1)
     distribution = df_imq["interpretation"].value_counts().to_dict()
 
@@ -302,6 +315,9 @@ def itr_geojson(
     score_min:      Optional[float] = Query(None, ge=0, le=100),
     score_max:      Optional[float] = Query(None, ge=0, le=100),
 ):
+    if _itr_geojson_full is None:
+        raise HTTPException(status_code=503, detail="Données ITR non disponibles, lancer le pipeline d'abord")
+
     features = _itr_geojson_full["features"]
 
     if arrondissement is not None:

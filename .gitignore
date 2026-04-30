@@ -81,3 +81,12 @@ data/bronze/_tmp_*/
 .env.local
 .env.*.local
 secrets.json
+
+# ══════════════════════════════════════════
+# AIRFLOW (runtime files)
+# ══════════════════════════════════════════
+logs/
+*.pid
+airflow.cfg
+airflow.db
+webserver_config.py

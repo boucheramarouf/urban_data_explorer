@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -100,14 +101,51 @@ services:
     volumes:
       - redis_data:/data
 
+
+  # ──────────────────────────────────────────────────────────────
+  # Airflow Init : Migrations DB + création user admin (one-shot)
+  # ──────────────────────────────────────────────────────────────
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: urban_data_explorer_airflow_init
+    entrypoint: ["bash", "-c"]
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
+      AIRFLOW_HOME: /app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./dags:/app/dags
+      - ./logs:/app/logs
+      - .:/app
+    command: >
+      "
+      until pg_isready -h db -U ${POSTGRES_USER}; do sleep 2; done &&
+      airflow db migrate &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com 2>/dev/null || true &&
+      echo 'Init Airflow terminée.'
+      "
+    restart: "no"   # one-shot : ne redémarre pas
+
+
   # ──────────────────────────────────────────────────────────────
   # Airflow Webserver : Interface de monitoring (port 8080)
   # ──────────────────────────────────────────────────────────────
   airflow-webserver:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: airflow
+      dockerfile: Dockerfile.airflow
     container_name: urban_data_explorer_airflow_webserver
     restart: unless-stopped
     env_file:
@@ -119,6 +157,7 @@ services:
       AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
       AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "False"
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
       AIRFLOW_HOME: /app
@@ -129,16 +168,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     volumes:
       - ./dags:/app/dags
       - ./logs:/app/logs
       - .:/app
-    command: >
-      sh -c "
-      airflow db migrate &&
-      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com 2>/dev/null || true &&
-      airflow webserver --port 8080
-      "
+    command: airflow webserver --port 8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -151,8 +187,7 @@ services:
   airflow-scheduler:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: airflow
+      dockerfile: Dockerfile.airflow
     container_name: urban_data_explorer_airflow_scheduler
     restart: unless-stopped
     env_file:
@@ -165,12 +200,15 @@ services:
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "False"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
       AIRFLOW_HOME: /app
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     volumes:
       - ./dags:/app/dags
       - ./logs:/app/logs
@@ -188,8 +226,7 @@ services:
   airflow-worker:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: airflow
+      dockerfile: Dockerfile.airflow
     container_name: urban_data_explorer_airflow_worker
     restart: unless-stopped
     env_file:
@@ -200,12 +237,15 @@ services:
       AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
       AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
       AIRFLOW_HOME: /app
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     volumes:
       - ./dags:/app/dags
       - ./logs:/app/logs

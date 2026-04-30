@@ -34,7 +34,7 @@ INDICATORS = [
         "name": "IMQ",
         "parquet": Path("data/gold/gold_IMQ/imq_par_iris.parquet"),
         "collection": "imq_par_iris",
-        "indexes": ["nom_voie", "arrondissement", "imq_score"],
+        "indexes": ["code_iris", "arrondissement", "imq_score"],
     },
 ]
 

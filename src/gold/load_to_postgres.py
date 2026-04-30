@@ -36,8 +36,16 @@ INDICATORS = [
 
 
 def _normalize_db_url(db_url: str) -> str:
+    try:
+        import psycopg  # noqa
+        driver = "postgresql+psycopg"
+    except ImportError:
+        driver = "postgresql+psycopg2"
+
     if db_url.startswith("postgresql://"):
-        return db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return db_url.replace("postgresql://", f"{driver}://", 1)
+    if db_url.startswith("postgresql+psycopg://"):
+        return db_url.replace("postgresql+psycopg://", f"{driver}://", 1)
     return db_url
 
 
@@ -64,7 +72,14 @@ def _build_db_url() -> str | None:
     if not user or not password or not db_name:
         return None
 
-    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db_name}"
+    # Utilise le bon driver selon l'environnement
+    try:
+        import psycopg  # noqa
+        driver = "postgresql+psycopg"
+    except ImportError:
+        driver = "postgresql+psycopg2"
+
+    return f"{driver}://{user}:{password}@{host}:{port}/{db_name}"
 
 
 def run() -> None:
@@ -73,7 +88,7 @@ def run() -> None:
         print("  [SKIP] Variables PostgreSQL absentes : export SQL ignoré.")
         return
 
-    engine = create_engine(db_url, pool_pre_ping=True, future=True)
+    engine = create_engine(db_url, pool_pre_ping=True)
     
     print("\n=== Export vers PostgreSQL ===")
     loaded_count = 0
@@ -89,14 +104,16 @@ def run() -> None:
         
         try:
             df = pd.read_parquet(parquet_path)
-            df.to_sql(
-                table_name,
-                engine,
-                if_exists="replace",
-                index=False,
-                method="multi",
-                chunksize=1000,
-            )
+            with engine.connect() as conn:
+                df.to_sql(
+                    table_name,
+                    conn,
+                    if_exists="replace",
+                    index=False,
+                    method="multi",
+                    chunksize=1000,
+                )
+                conn.commit()
             print(f"  [OK] {name}: Table '{table_name}' alimentée ({len(df):,} lignes)")
             loaded_count += 1
         except Exception as e:

@@ -12,8 +12,10 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 import pandas as pd
 
-GOLD_PARQUET = Path("data/gold/gold_SVP/svp_par_rue.parquet")
-GOLD_GEOJSON = Path("data/gold/gold_SVP/svp_par_rue.geojson")
+BASE = Path(__file__).parent.parent
+
+GOLD_PARQUET = BASE / "data" / "gold" / "gold_SVP" / "svp_par_rue.parquet"
+GOLD_GEOJSON = BASE / "data" / "gold" / "gold_SVP" / "svp_par_rue.geojson"
 
 router = APIRouter(tags=["SVP - Score de Verdure et Proximite"])
 
@@ -24,9 +26,9 @@ def get_df() -> pd.DataFrame:
     global _df
     if _df is None:
         if not GOLD_PARQUET.exists():
-            raise RuntimeError(
-                f"Fichier gold SVP introuvable : {GOLD_PARQUET}\n"
-                "Lancer : python run_pipeline.py --indicateur SVP"
+            raise HTTPException(
+                status_code=503,
+                detail=f"Données SVP non disponibles, lancer le pipeline d'abord"
             )
         _df = pd.read_parquet(GOLD_PARQUET)
         if "has_commerce" not in _df.columns:
