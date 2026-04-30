@@ -53,12 +53,14 @@ def _count_unique_within(
     key_col: str,
     out_col: str,
 ) -> pd.DataFrame:
+    tx_buffered = tx_gdf[["tx_id", "geometry"]].copy()
+    tx_buffered["geometry"] = tx_buffered.geometry.buffer(RADIUS_METERS)
+
     joined = gpd.sjoin(
-        tx_gdf[["tx_id", "geometry"]],
+        tx_buffered,
         points_gdf[[key_col, "geometry"]],
         how="left",
-        predicate="dwithin",
-        distance=RADIUS_METERS,
+        predicate="contains",
     )
 
     counts = joined.groupby("tx_id")[key_col].nunique(dropna=True).rename(out_col)

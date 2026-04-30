@@ -191,6 +191,7 @@ if __name__ == "__main__":
     run_couche("silver", cibles)
   elif "--gold" in args:
     run_couche("gold", cibles)
+  elif "--load-db" in args:
     load_to_databases()
   else:
     run_couche("bronze", cibles)

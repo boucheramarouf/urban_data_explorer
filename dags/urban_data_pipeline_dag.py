@@ -14,7 +14,7 @@ DEFAULT_ARGS = {
     "owner": "urban_data_team",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "start_date": datetime(2026, 5, 1),
+    "start_date": datetime(2026, 4, 29),
 }
 
 PROJECT_ROOT = "/app"
@@ -37,9 +37,25 @@ with DAG(
         bash_command=f"cd {PROJECT_ROOT} && python download_svp_data.py",
     )
 
-    run_pipeline = BashOperator(
-        task_id="run_full_pipeline",
-        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py",
+    run_svp = BashOperator(
+        task_id="run_svp",
+        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --indicateur SVP",
     )
 
-    download_svp >> run_pipeline
+    run_iaml = BashOperator(
+        task_id="run_iaml",
+        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --indicateur IAML",
+    )
+
+    run_itr = BashOperator(
+        task_id="run_itr",
+        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --indicateur ITR",
+    )
+
+
+    load_db = BashOperator(
+        task_id="load_databases",
+        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --load-db",
+    )
+
+    download_svp >> run_svp >> run_iaml >> run_itr >> load_db

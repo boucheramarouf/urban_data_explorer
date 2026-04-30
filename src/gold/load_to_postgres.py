@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import create_engine
 
 
 # Configuration des indicateurs
@@ -35,20 +34,6 @@ INDICATORS = [
 ]
 
 
-def _normalize_db_url(db_url: str) -> str:
-    try:
-        import psycopg  # noqa
-        driver = "postgresql+psycopg"
-    except ImportError:
-        driver = "postgresql+psycopg2"
-
-    if db_url.startswith("postgresql://"):
-        return db_url.replace("postgresql://", f"{driver}://", 1)
-    if db_url.startswith("postgresql+psycopg://"):
-        return db_url.replace("postgresql+psycopg://", f"{driver}://", 1)
-    return db_url
-
-
 def _default_pg_host() -> str:
     host = os.getenv("POSTGRES_HOST")
     if host:
@@ -58,10 +43,13 @@ def _default_pg_host() -> str:
     return "localhost"
 
 
-def _build_db_url() -> str | None:
+def _build_raw_url() -> str | None:
+    """Retourne une URL psycopg native (sans driver SQLAlchemy)."""
     db_url = os.getenv("DATABASE_URL")
     if db_url:
-        return _normalize_db_url(db_url)
+        return (db_url
+                .replace("postgresql+psycopg://", "postgresql://")
+                .replace("postgresql+psycopg2://", "postgresql://"))
 
     user = os.getenv("POSTGRES_USER")
     password = os.getenv("POSTGRES_PASSWORD")
@@ -72,53 +60,67 @@ def _build_db_url() -> str | None:
     if not user or not password or not db_name:
         return None
 
-    # Utilise le bon driver selon l'environnement
-    try:
-        import psycopg  # noqa
-        driver = "postgresql+psycopg"
-    except ImportError:
-        driver = "postgresql+psycopg2"
+    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 
-    return f"{driver}://{user}:{password}@{host}:{port}/{db_name}"
+
+def _get_connector():
+    """Retourne le module psycopg disponible (v3 ou v2)."""
+    try:
+        import psycopg
+        return psycopg, "psycopg3"
+    except ImportError:
+        import psycopg2
+        return psycopg2, "psycopg2"
 
 
 def run() -> None:
-    db_url = _build_db_url()
-    if not db_url:
+    raw_url = _build_raw_url()
+    if not raw_url:
         print("  [SKIP] Variables PostgreSQL absentes : export SQL ignoré.")
         return
 
-    engine = create_engine(db_url, pool_pre_ping=True)
-    
-    print("\n=== Export vers PostgreSQL ===")
+    psycopg_mod, version = _get_connector()
+    print(f"\n=== Export vers PostgreSQL ({version}) ===")
     loaded_count = 0
-    
+
     for indicator in INDICATORS:
         name = indicator["name"]
         parquet_path = indicator["parquet"]
         table_name = indicator["table"]
-        
+
         if not parquet_path.exists():
             print(f"  [SKIP] {name}: Fichier {parquet_path} introuvable")
             continue
-        
+
         try:
             df = pd.read_parquet(parquet_path)
-            with engine.connect() as conn:
-                df.to_sql(
-                    table_name,
-                    conn,
-                    if_exists="replace",
-                    index=False,
-                    method="multi",
-                    chunksize=1000,
-                )
+
+            with psycopg_mod.connect(raw_url) as conn:
+                with conn.cursor() as cur:
+                    cols = ", ".join([f'"{c}" TEXT' for c in df.columns])
+                    cur.execute(f'DROP TABLE IF EXISTS "{table_name}"')
+                    cur.execute(f'CREATE TABLE "{table_name}" ({cols})')
+
+                    rows = [
+                        tuple(str(v) if v is not None else None for v in row)
+                        for row in df.itertuples(index=False)
+                    ]
+
+                    placeholders = ", ".join(["%s"] * len(df.columns))
+                    cur.executemany(
+                        f'INSERT INTO "{table_name}" VALUES ({placeholders})',
+                        rows
+                    )
                 conn.commit()
+
             print(f"  [OK] {name}: Table '{table_name}' alimentée ({len(df):,} lignes)")
             loaded_count += 1
+
         except Exception as e:
+            import traceback
             print(f"  [ERROR] {name}: {str(e)}")
-    
+            traceback.print_exc()
+
     print(f"\n{loaded_count}/{len(INDICATORS)} indicateurs exportés vers PostgreSQL")
 
 
