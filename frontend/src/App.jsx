@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import ComparateurPage from './components/ComparateurPage.jsx'
 import MethodologiePage from './components/MethodologiePage.jsx'
 import IndicateursPage from './components/IndicateursPage.jsx'
 import SourcesPage from './components/SourcesPage.jsx'
@@ -9,6 +10,7 @@ import { useStats } from './hooks/useStats.js'
 
 const NAV_LINKS = [
   { key: 'carte',        label: 'Carte' },
+  { key: 'comparateur',  label: 'Comparateur' },
   { key: 'indicateurs',  label: 'Indicateurs' },
   { key: 'methodologie', label: 'Méthodologie' },
   { key: 'sources',      label: 'Sources' },
@@ -124,6 +126,7 @@ export default function App() {
     <>
       <Navbar page={page} onNavigate={setPage} />
       {page === 'carte'         && <CartographiePage />}
+      {page === 'comparateur'   && <ComparateurPage />}
       {page === 'indicateurs'   && <IndicateursPage />}
       {page === 'methodologie'  && <MethodologiePage />}
       {page === 'sources'       && <SourcesPage />}
