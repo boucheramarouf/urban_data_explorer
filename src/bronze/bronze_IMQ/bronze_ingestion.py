@@ -18,20 +18,19 @@ print("\n" + "=" * 60)
 print("1/4 — DVF+ (GeoPackage)")
 print("=" * 60)
 
-try:
+_dvf_out = os.path.join(BRONZE_DIR, "dvf_raw.parquet")
+if os.path.exists(_dvf_out):
+    print(f"  Cache trouvé, étape ignorée ({_dvf_out})")
+else:
+  try:
     dvf_path = os.path.join(RAW_IMQ, "dvf_plus_d75.gpkg")
     print(f"  Lecture : {dvf_path}")
 
-    # Lire uniquement les colonnes nécessaires
-    cols_utiles = [
-        "idmutation", "datemut", "anneemut",
-        "valeurfonc", "sbati", "libtypbien",
-        "coddep", "geometry"
-    ]
-    gdf = gpd.read_file(dvf_path, layer="mutation", where="coddep = '75'",
-                        columns=cols_utiles)
+    # Lecture sans where/columns pour éviter les crash GDAL selon la version
+    gdf = gpd.read_file(dvf_path, layer="mutation")
     print(f"  Lignes brutes : {len(gdf):,}")
 
+    # Filtres en Python
     gdf = gdf[gdf["coddep"] == "75"]
 
     # Filtrer dès le bronze pour réduire la taille
@@ -40,16 +39,37 @@ try:
     gdf = gdf[gdf["libtypbien"].str.contains("APPARTEMENT|MAISON", case=False, na=False)]
     print(f"  Après filtres : {len(gdf):,}")
 
-    # Sérialiser geometry en WKT
-    gdf["geometry"] = gdf["geometry"].astype(str)
-    gdf.to_parquet(os.path.join(BRONZE_DIR, "dvf_raw.parquet"), index=False)
-    print(f"  Sauvegardé : {os.path.join(BRONZE_DIR, 'dvf_raw.parquet')}")
+    # Garder uniquement les colonnes nécessaires avant reprojection
+    cols_garder = ["idmutation", "datemut", "anneemut", "valeurfonc", "sbati", "libtypbien", "geometry"]
+    cols_garder = [c for c in cols_garder if c in gdf.columns]
+    gdf = gdf[cols_garder].copy()
+    gc.collect()
 
+    # Reprojection WGS84 et extraction des coordonnées centroïde
+    print("  Reprojection EPSG:2154 → EPSG:4326 et extraction lat/lon...")
+    gdf = gdf.to_crs("EPSG:4326")
+    df_out = pd.DataFrame({
+        "idmutation": gdf["idmutation"].values,
+        "datemut":    gdf["datemut"].values,
+        "anneemut":   gdf["anneemut"].values,
+        "valeurfonc": gdf["valeurfonc"].values,
+        "sbati":      gdf["sbati"].values,
+        "libtypbien": gdf["libtypbien"].values,
+        "longitude":  gdf.geometry.centroid.x.values,
+        "latitude":   gdf.geometry.centroid.y.values,
+    })
     del gdf
     gc.collect()
 
-except Exception as e:
+    df_out.to_parquet(_dvf_out, index=False)
+    print(f"  Sauvegardé : {_dvf_out} ({len(df_out):,} lignes)")
+
+    del df_out
+    gc.collect()
+
+  except Exception as e:
     print(f"  ERREUR DVF+ : {e}")
+    import traceback; traceback.print_exc()
     sys.exit(1)
 
 
@@ -60,7 +80,11 @@ print("\n" + "=" * 60)
 print("2/4 — SIRENE (CSV.GZ par arrondissement)")
 print("=" * 60)
 
-try:
+_sirene_out = os.path.join(BRONZE_DIR, "sirene_raw.parquet")
+if os.path.exists(_sirene_out):
+    print(f"  Cache trouvé, étape ignorée ({_sirene_out})")
+else:
+  try:
     sirene_dir = os.path.join(RAW_IMQ, "geo_siret")
     files = sorted(glob.glob(os.path.join(sirene_dir, "*.csv.gz")))
 
@@ -98,14 +122,15 @@ try:
     gc.collect()
 
     print(f"  Total : {len(df_sirene):,} lignes")
-    df_sirene.to_parquet(os.path.join(BRONZE_DIR, "sirene_raw.parquet"), index=False)
-    print(f"  Sauvegardé : {os.path.join(BRONZE_DIR, 'sirene_raw.parquet')}")
+    df_sirene.to_parquet(_sirene_out, index=False)
+    print(f"  Sauvegardé : {_sirene_out}")
 
     del df_sirene
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR SIRENE : {e}")
+    import traceback; traceback.print_exc()
     sys.exit(1)
 
 
@@ -116,19 +141,24 @@ print("\n" + "=" * 60)
 print("3/4 — LOVAC (Excel)")
 print("=" * 60)
 
-try:
+_lovac_out = os.path.join(BRONZE_DIR, "lovac_raw.parquet")
+if os.path.exists(_lovac_out):
+    print(f"  Cache trouvé, étape ignorée ({_lovac_out})")
+else:
+  try:
     lovac_path = os.path.join(RAW_IMQ, "lovac-open-data-2020-a-2025-vd.xlsx")
     df_lovac = pd.read_excel(lovac_path, sheet_name="COM")
     print(f"  Lignes : {len(df_lovac):,}")
 
-    df_lovac.to_parquet(os.path.join(BRONZE_DIR, "lovac_raw.parquet"), index=False)
-    print(f"  Sauvegardé : {os.path.join(BRONZE_DIR, 'lovac_raw.parquet')}")
+    df_lovac.to_parquet(_lovac_out, index=False)
+    print(f"  Sauvegardé : {_lovac_out}")
 
     del df_lovac
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR LOVAC : {e}")
+    import traceback; traceback.print_exc()
     sys.exit(1)
 
 
@@ -139,19 +169,24 @@ print("\n" + "=" * 60)
 print("4/4 — Filosofi (CSV)")
 print("=" * 60)
 
-try:
+_filo_out = os.path.join(BRONZE_DIR, "filosofi_raw.parquet")
+if os.path.exists(_filo_out):
+    print(f"  Cache trouvé, étape ignorée ({_filo_out})")
+else:
+  try:
     filo_path = os.path.join(RAW_IMQ, "BASE_TD_FILO_IRIS_2021_DEC.csv")
     df_filo = pd.read_csv(filo_path, sep=";", low_memory=False)
     print(f"  Lignes : {len(df_filo):,}")
 
-    df_filo.to_parquet(os.path.join(BRONZE_DIR, "filosofi_raw.parquet"), index=False)
-    print(f"  Sauvegardé : {os.path.join(BRONZE_DIR, 'filosofi_raw.parquet')}")
+    df_filo.to_parquet(_filo_out, index=False)
+    print(f"  Sauvegardé : {_filo_out}")
 
     del df_filo
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR Filosofi : {e}")
+    import traceback; traceback.print_exc()
     sys.exit(1)
 
 

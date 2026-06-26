@@ -52,10 +52,14 @@ with DAG(
         bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --indicateur ITR",
     )
 
+    run_imq = BashOperator(
+        task_id="run_imq",
+        bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --indicateur IMQ",
+    )
 
     load_db = BashOperator(
         task_id="load_databases",
         bash_command=f"cd {PROJECT_ROOT} && python run_pipeline.py --load-db",
     )
 
-    download_svp >> run_svp >> run_iaml >> run_itr >> load_db
+    download_svp >> run_svp >> run_iaml >> run_itr >> run_imq >> load_db

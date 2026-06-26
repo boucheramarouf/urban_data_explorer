@@ -20,17 +20,17 @@ const formatNumber = (value, digits = 0) =>
   Number(value || 0).toLocaleString('fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits })
 
 const Metric = ({ label, value, sub }) => (
-  <div style={{ background: '#1a1d27', border: '1px solid #2e3348', borderRadius: 8, padding: '10px 12px' }}>
-    <p style={{ fontSize: 10, color: '#555e80', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{label}</p>
-    <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f2ff' }}>{value}</p>
-    {sub && <p style={{ fontSize: 10, color: '#8b92b8', marginTop: 2 }}>{sub}</p>}
+  <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px' }}>
+    <p style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{label}</p>
+    <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{value}</p>
+    {sub && <p style={{ fontSize: 10, color: 'var(--text-2)', marginTop: 2 }}>{sub}</p>}
   </div>
 )
 
 const Row = ({ label, value }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #1a1d27' }}>
-    <span style={{ fontSize: 12, color: '#8b92b8' }}>{label}</span>
-    <span style={{ fontSize: 13, fontWeight: 600, color: '#c8cde8' }}>{value}</span>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-light)' }}>
+    <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{label}</span>
+    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{value}</span>
   </div>
 )
 
@@ -40,13 +40,13 @@ function IMQDetail({ f }) {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score IMQ</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score IMQ</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 22, fontWeight: 800, color }}>{f.score_imq_100}</span>
           <span style={{ fontSize: 10, fontWeight: 600, color, background: color + '22', border: `1px solid ${color}44`, borderRadius: 20, padding: '2px 8px' }}>{f.interpretation}</span>
         </div>
       </div>
-      <div style={{ height: 6, background: '#2e3348', borderRadius: 3, marginBottom: 16 }}>
+      <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, marginBottom: 16 }}>
         <div style={{ height: '100%', width: `${f.score_imq_100}%`, background: color, borderRadius: 3 }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -55,8 +55,8 @@ function IMQDetail({ f }) {
         <Metric label="Revenu"      value={pct(f.revenu_norm)}      sub="Filosofi" />
         <Metric label="Vacance"     value={pct(f.vacance_norm)}     sub="LOVAC" />
       </div>
-      <div style={{ background: '#1a1d27', borderRadius: 8, padding: '10px 14px' }}>
-        <p style={{ fontSize: 11, color: '#555e80', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>Formule IMQ</p>
+      <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 14px' }}>
+        <p style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>Formule IMQ</p>
         <Row label="35% · Prix DVF"        value={pct(f.delta_prix_norm)} />
         <Row label="30% · Commerce SIRENE" value={pct(f.ratio_comm_norm)} />
         <Row label="20% · Revenu Filosofi" value={pct(f.revenu_norm)} />
@@ -71,13 +71,13 @@ function ITRDetail({ f }) {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score ITR</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Score ITR</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 22, fontWeight: 800, color }}>{f.itr_score}</span>
           <span style={{ fontSize: 10, fontWeight: 600, color, background: color + '22', border: `1px solid ${color}44`, borderRadius: 20, padding: '2px 8px' }}>{f.itr_label}</span>
         </div>
       </div>
-      <div style={{ height: 6, background: '#2e3348', borderRadius: 3, marginBottom: 16 }}>
+      <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, marginBottom: 16 }}>
         <div style={{ height: '100%', width: `${f.itr_score}%`, background: color, borderRadius: 3 }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
@@ -86,8 +86,8 @@ function ITRDetail({ f }) {
         <Metric label="Log. sociaux"  value={f.nb_logements_sociaux > 0 ? f.nb_logements_sociaux : 'Aucun'} sub="dans l'IRIS" />
         <Metric label="Transactions"  value={f.nb_transactions}                                             sub="ventes" />
       </div>
-      <div style={{ background: '#1a1d27', borderRadius: 8, padding: '10px 14px' }}>
-        <p style={{ fontSize: 11, color: '#555e80', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>Composantes ITR</p>
+      <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 14px' }}>
+        <p style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>Composantes ITR</p>
         <Row label="Effort d'achat (prix/revenu)" value={(f.c1_effort || 0).toFixed(3)} />
         <Row label="Facteur logement social"      value={(f.c2_logsoc || 0).toFixed(3)} />
         <Row label="Score brut"                   value={(f.itr_brut  || 0).toFixed(4)} />
@@ -141,20 +141,20 @@ function GenericDetail({ indicator, f }) {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: '#8b92b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{cfg.scoreLabel}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{cfg.scoreLabel}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 22, fontWeight: 800, color }}>{formatNumber(score)}</span>
           <span style={{ fontSize: 10, fontWeight: 600, color, background: `${color}22`, border: `1px solid ${color}44`, borderRadius: 20, padding: '2px 8px' }}>{f[labelField]}</span>
         </div>
       </div>
-      <div style={{ height: 6, background: '#2e3348', borderRadius: 3, marginBottom: 16 }}>
+      <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, marginBottom: 16 }}>
         <div style={{ height: '100%', width: `${score}%`, background: color, borderRadius: 3 }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
         {panel.metrics.map(m => <Metric key={m.label} label={m.label} value={m.value} sub={m.sub} />)}
       </div>
-      <div style={{ background: '#1a1d27', borderRadius: 8, padding: '10px 14px' }}>
-        <p style={{ fontSize: 11, color: '#555e80', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>{panel.title}</p>
+      <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 14px' }}>
+        <p style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, fontWeight: 600 }}>{panel.title}</p>
         {panel.rows.map(r => <Row key={r.label} label={r.label} value={r.value} />)}
       </div>
     </>
@@ -178,17 +178,17 @@ export default function FeatureDetail({ indicator, feature, onClose }) {
     : `${feature.code_postal} · ${feature.arrondissement}e arrondissement`
 
   return (
-    <div style={{ background: '#21253a', border: '1px solid #2e3348', borderRadius: 10, overflow: 'hidden', marginTop: 8 }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', marginTop: 8 }}>
       <div style={{
-        background: `linear-gradient(135deg, ${color}22, transparent)`,
-        borderBottom: '1px solid #2e3348', padding: '14px 16px',
+        background: `linear-gradient(135deg, ${color}18, transparent)`,
+        borderBottom: '1px solid var(--border)', padding: '14px 16px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
       }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f2ff', marginBottom: 2 }}>{title}</p>
-          <p style={{ fontSize: 11, color: '#8b92b8' }}>{sub}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{title}</p>
+          <p style={{ fontSize: 11, color: 'var(--text-2)' }}>{sub}</p>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#555e80', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
       </div>
       <div style={{ padding: 16 }}>
         {isIMQ ? <IMQDetail f={feature} /> : isITR ? <ITRDetail f={feature} /> : <GenericDetail indicator={indicator} f={feature} />}

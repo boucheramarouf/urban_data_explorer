@@ -93,7 +93,9 @@ def _load_parquet(path: Path, label: str) -> pd.DataFrame:
 def _load_sql(table_name: str) -> pd.DataFrame:
     if engine is None or not is_db_ready():
         raise RuntimeError("Base de données indisponible")
-    return pd.read_sql(f"SELECT * FROM {table_name}", engine)
+    df = pd.read_sql(f"SELECT * FROM {table_name}", engine)
+    df = df.apply(pd.to_numeric, errors="ignore")
+    return df
 
 
 def _serialize_value(value):

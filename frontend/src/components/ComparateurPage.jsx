@@ -29,7 +29,7 @@ const ARRONDISSEMENTS = Array.from({ length: 20 }, (_, i) => ({ value: i + 1, la
 export default function ComparateurPage() {
   const [allData, setAllData]       = useState({})
   const [loading, setLoading]       = useState(true)
-  const [selection, setSelection]   = useState([4, 11, 16])  // default 3 arrondissements
+  const [selection, setSelection]   = useState([4, 11, 16])
 
   useEffect(() => {
     Promise.all(INDICATORS.map(ind =>
@@ -51,11 +51,7 @@ export default function ComparateurPage() {
   }, [])
 
   const handleSelect = (idx, val) => {
-    setSelection(prev => {
-      const next = [...prev]
-      next[idx] = Number(val)
-      return next
-    })
+    setSelection(prev => { const next = [...prev]; next[idx] = Number(val); return next })
   }
 
   const selectedData = selection.map(arr => allData[arr])
@@ -70,7 +66,7 @@ export default function ComparateurPage() {
           <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 12 }}>
             Comparateur · {selection.length} arrondissements · 4 indices
           </p>
-          <h1 style={{ fontFamily: 'DM Serif Display, serif', fontSize: 48, color: 'var(--text)', lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 48, color: 'var(--text)', lineHeight: 1.1 }}>
             Confronter les{' '}
             <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>signatures</span>{' '}
             urbaines.
@@ -87,7 +83,7 @@ export default function ComparateurPage() {
           <>
             {/* Comparison table */}
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: 32 }}>
-              {/* Header row — arrondissement selectors */}
+              {/* Header row */}
               <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(3, 1fr)', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ padding: '20px 24px', borderRight: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Quartier</p>
@@ -114,13 +110,10 @@ export default function ComparateurPage() {
               {/* Indicator rows */}
               {INDICATORS.map((ind, iRow) => (
                 <div key={ind.key} style={{ display: 'grid', gridTemplateColumns: '200px repeat(3, 1fr)', borderBottom: iRow < INDICATORS.length - 1 ? '1px solid var(--border-light)' : 'none' }}>
-                  {/* Label */}
                   <div style={{ padding: '20px 24px', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: ind.color, marginBottom: 3, letterSpacing: '0.05em' }}>{ind.key}</span>
                     <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{ind.sub}</span>
                   </div>
-
-                  {/* Score cells */}
                   {[0, 1, 2].map(i => {
                     const row = selectedData[i]
                     const score = row?.[ind.statsKey]
@@ -130,7 +123,7 @@ export default function ComparateurPage() {
                         {score != null ? (
                           <>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                              <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 28, color: c }}>{score.toFixed(1)}</span>
+                              <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, color: c }}>{score.toFixed(1)}</span>
                               <span style={{ fontSize: 11, color: 'var(--text-3)' }}>/100</span>
                             </div>
                             <ScoreBar score={score} color={c} />
@@ -155,7 +148,7 @@ export default function ComparateurPage() {
                 return (
                   <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 20px 16px', boxShadow: 'var(--shadow-sm)' }}>
                     <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Paris {selection[i]}e arr.</p>
-                    <p style={{ fontFamily: 'DM Serif Display, serif', fontSize: 22, color: avg != null ? scoreColor(avg) : 'var(--text)', marginBottom: 4 }}>
+                    <p style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: avg != null ? scoreColor(avg) : 'var(--text)', marginBottom: 4 }}>
                       {avg != null ? `${avg.toFixed(1)}/100` : '—'}
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Score composite moyen</p>

@@ -20,7 +20,7 @@ SILVER_PATH = Path("data/silver/silver_ITR/rue_enrichie.parquet")
 OUT_PARQUET = Path("data/gold/gold_ITR/itr_par_rue.parquet")
 OUT_GEOJSON = Path("data/gold/gold_ITR/itr_par_rue.geojson")
 
-LABELS = ["Tres accessible", "Accessible", "Modere", "Tendu", "Tres tendu"]
+LABELS = ["Très accessible", "Accessible", "Modéré", "Tendu", "Très tendu"]
 
 
 def compute_itr(df: pd.DataFrame) -> pd.DataFrame:

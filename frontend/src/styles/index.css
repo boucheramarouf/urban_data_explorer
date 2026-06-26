@@ -5,24 +5,26 @@
 }
 
 :root {
-  --bg:          #EFE9DF;
-  --bg-card:     #FAFAF7;
-  --bg-hover:    #E7E0D5;
-  --border:      #D8D1C6;
-  --border-light:#E8E2D8;
-  --text:        #1C1916;
-  --text-2:      #6B6358;
-  --text-3:      #9E9589;
-  --accent:      #1A35B4;
-  --accent-light:#2B46C8;
+  --bg:          #F0EAE0;
+  --bg-card:     #FDFAF6;
+  --bg-hover:    #E8DFD3;
+  --border:      #D1C8BB;
+  --border-light:#E2D9CE;
+  --text:        #1A1511;
+  --text-2:      #6A5E52;
+  --text-3:      #9E9080;
+  --accent:      #1D4E6B;
+  --accent-light:#2A6A8F;
 
   --score-green: #16a34a;
   --score-amber: #d97706;
   --score-red:   #dc2626;
   --score-blue:  #2563eb;
 
-  --sidebar-w:   272px;
-  --nav-h:       56px;
+  --sidebar-w:      272px;
+  --sidebar-width:  360px;
+  --nav-h:          56px;
+  --header-height:  56px;
 
   --shadow-sm:   0 1px 3px rgba(28,25,22,0.08);
   --shadow-md:   0 4px 16px rgba(28,25,22,0.10);
@@ -38,7 +40,7 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
 }
 
-.serif { font-family: 'DM Serif Display', serif; }
+.serif { font-family: 'Cormorant Garamond', serif; }
 
 /* scrollbar */
 ::-webkit-scrollbar { width: 4px; }

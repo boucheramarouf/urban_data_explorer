@@ -9,8 +9,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import geopandas as gpd
-from shapely import wkt
 
 warnings.filterwarnings("ignore")
 
@@ -27,7 +25,11 @@ print("\n" + "=" * 60)
 print("1/4 — DVF+ Silver")
 print("=" * 60)
 
-try:
+_dvf_silver = os.path.join(SILVER_DIR, "dvf_clean.parquet")
+if os.path.exists(_dvf_silver):
+    print(f"  Cache trouvé, étape ignorée ({_dvf_silver})")
+else:
+  try:
     df = pd.read_parquet(os.path.join(BRONZE_DIR, "dvf_raw.parquet"))
     print(f"  Lignes chargées : {len(df):,}")
 
@@ -36,41 +38,21 @@ try:
     df = df[(df["prix_m2"] >= 1000) & (df["prix_m2"] <= 30000)]
     print(f"  Après filtre prix_m2 : {len(df):,}")
 
-    # Supprimer géométries nulles
-    df = df[df["geometry"].notna()]
-    df = df[~df["geometry"].astype(str).str.upper().isin(["NONE", "NAN"])]
-    print(f"  Après suppression géométries nulles : {len(df):,}")
-
-    # Conversion géométrie par chunks pour économiser la mémoire
-    print("  Conversion géométrie Lambert 93 → WGS84 (par chunks)...")
-    chunk_size = 50_000
-    lons, lats = [], []
-
-    for i in range(0, len(df), chunk_size):
-        chunk = df.iloc[i:i+chunk_size].copy()
-        chunk["geometry"] = chunk["geometry"].apply(wkt.loads)
-        gdf_chunk = gpd.GeoDataFrame(chunk, geometry="geometry", crs="EPSG:2154")
-        gdf_chunk = gdf_chunk.to_crs("EPSG:4326")
-        lons.extend(gdf_chunk.geometry.centroid.x.tolist())
-        lats.extend(gdf_chunk.geometry.centroid.y.tolist())
-        del gdf_chunk, chunk
-        gc.collect()
-
-    df["longitude"] = lons
-    df["latitude"] = lats
-    del lons, lats
-    gc.collect()
+    # latitude/longitude déjà extraits en bronze (EPSG:4326)
+    df = df.dropna(subset=["latitude", "longitude"])
+    df = df[(df["longitude"].between(-0.5, 3.5)) & (df["latitude"].between(48.0, 49.5))]
+    print(f"  Après filtre coordonnées Paris : {len(df):,}")
 
     cols = ["idmutation", "datemut", "anneemut", "valeurfonc", "sbati",
             "prix_m2", "libtypbien", "latitude", "longitude"]
     cols = [c for c in cols if c in df.columns]
-    df[cols].to_parquet(os.path.join(SILVER_DIR, "dvf_clean.parquet"), index=False)
+    df[cols].to_parquet(_dvf_silver, index=False)
     print(f"  Sauvegardé ({len(df):,} lignes)")
 
     del df
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR DVF+ Silver : {e}")
     import traceback; traceback.print_exc()
     sys.exit(1)
@@ -83,7 +65,11 @@ print("\n" + "=" * 60)
 print("2/4 — SIRENE Silver")
 print("=" * 60)
 
-try:
+_sirene_silver = os.path.join(SILVER_DIR, "sirene_clean.parquet")
+if os.path.exists(_sirene_silver):
+    print(f"  Cache trouvé, étape ignorée ({_sirene_silver})")
+else:
+  try:
     # Bronze a déjà filtré geo_score, CP 75, NAF
     df = pd.read_parquet(os.path.join(BRONZE_DIR, "sirene_raw.parquet"))
     print(f"  Lignes chargées : {len(df):,}")
@@ -101,13 +87,13 @@ try:
     cols = ["siret", "latitude", "longitude", "activitePrincipaleEtablissement",
             "statut", "annee_creation", "annee_debut", "codePostalEtablissement"]
     cols = [c for c in cols if c in df.columns]
-    df[cols].to_parquet(os.path.join(SILVER_DIR, "sirene_clean.parquet"), index=False)
+    df[cols].to_parquet(_sirene_silver, index=False)
     print(f"  Sauvegardé ({len(df):,} lignes)")
 
     del df
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR SIRENE Silver : {e}")
     import traceback; traceback.print_exc()
     sys.exit(1)
@@ -120,7 +106,11 @@ print("\n" + "=" * 60)
 print("3/4 — LOVAC Silver")
 print("=" * 60)
 
-try:
+_lovac_silver = os.path.join(SILVER_DIR, "lovac_clean.parquet")
+if os.path.exists(_lovac_silver):
+    print(f"  Cache trouvé, étape ignorée ({_lovac_silver})")
+else:
+  try:
     df = pd.read_parquet(os.path.join(BRONZE_DIR, "lovac_raw.parquet"))
     df["CODGEO_25"] = df["CODGEO_25"].astype(str).str.strip()
     df = df[df["CODGEO_25"].str.startswith("75")]
@@ -142,13 +132,13 @@ try:
     cols = ["CODGEO_25", "taux_vacant_20", "taux_vacant_21", "taux_vacant_22",
             "taux_vacant_23", "taux_vacant_24", "delta_vacance"]
     cols = [c for c in cols if c in df.columns]
-    df[cols].to_parquet(os.path.join(SILVER_DIR, "lovac_clean.parquet"), index=False)
+    df[cols].to_parquet(_lovac_silver, index=False)
     print(f"  Sauvegardé")
 
     del df
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR LOVAC Silver : {e}")
     import traceback; traceback.print_exc()
     sys.exit(1)
@@ -161,7 +151,11 @@ print("\n" + "=" * 60)
 print("4/4 — Filosofi Silver")
 print("=" * 60)
 
-try:
+_filo_silver = os.path.join(SILVER_DIR, "filosofi_clean.parquet")
+if os.path.exists(_filo_silver):
+    print(f"  Cache trouvé, étape ignorée ({_filo_silver})")
+else:
+  try:
     df = pd.read_parquet(os.path.join(BRONZE_DIR, "filosofi_raw.parquet"))
     df["IRIS"] = df["IRIS"].astype(str).str.strip()
     df = df[df["IRIS"].str.startswith("75")]
@@ -176,15 +170,13 @@ try:
     df = df[df[rev_col] > 0]
     df = df.rename(columns={rev_col: "DISP_MED21"})
 
-    df[["IRIS", "DISP_MED21"]].to_parquet(
-        os.path.join(SILVER_DIR, "filosofi_clean.parquet"), index=False
-    )
+    df[["IRIS", "DISP_MED21"]].to_parquet(_filo_silver, index=False)
     print(f"  Sauvegardé ({len(df):,} lignes)")
 
     del df
     gc.collect()
 
-except Exception as e:
+  except Exception as e:
     print(f"  ERREUR Filosofi Silver : {e}")
     import traceback; traceback.print_exc()
     sys.exit(1)
