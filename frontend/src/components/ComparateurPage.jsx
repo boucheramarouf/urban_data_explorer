@@ -7,7 +7,14 @@ const INDICATORS = [
   { key: 'IAML', label: "Accessibilité Multimodale",       sub: 'Multimodal',      color: '#2563eb', statsKey: 'iaml_score_median', path: '/api/iaml/stats' },
 ]
 
-function scoreColor(score) {
+function scoreColor(score, indicatorKey) {
+  // SVP : score élevé = bon (plus de verdure) → inverser la logique
+  if (indicatorKey === 'SVP') {
+    if (score >= 70) return '#16a34a'
+    if (score >= 45) return '#d97706'
+    return '#dc2626'
+  }
+  // IMQ, ITR, IAML : score élevé = tension/mutation → rouge
   if (score >= 70) return '#dc2626'
   if (score >= 45) return '#d97706'
   return '#16a34a'
@@ -117,7 +124,7 @@ export default function ComparateurPage() {
                   {[0, 1, 2].map(i => {
                     const row = selectedData[i]
                     const score = row?.[ind.statsKey]
-                    const c = score != null ? scoreColor(score) : 'var(--text-3)'
+                    const c = score != null ? scoreColor(score, ind.key) : 'var(--text-3)'
                     return (
                       <div key={i} style={{ padding: '16px 20px', borderRight: i < 2 ? '1px solid var(--border-light)' : 'none' }}>
                         {score != null ? (

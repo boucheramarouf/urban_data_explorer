@@ -22,6 +22,7 @@ Usage :
 
 import sys
 import time
+import json
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -161,13 +162,34 @@ def load_to_databases():
 # ORCHESTRATEUR
 # ──────────────────────────────────────────────────────────────
 
+def _publish_event(event_type: str, message: str, indicateur: str = None):
+  """Publie un événement sur le canal Redis urban_data:events (optionnel)."""
+  try:
+    import redis, os
+    from datetime import datetime
+    client = redis.Redis(
+      host=os.getenv("REDIS_HOST", "redis"),
+      port=int(os.getenv("REDIS_PORT", 6379)),
+      decode_responses=True,
+      socket_connect_timeout=2,
+    )
+    payload = {"type": event_type, "timestamp": datetime.utcnow().isoformat(), "message": message}
+    if indicateur:
+      payload["indicateur"] = indicateur
+    client.publish("urban_data:events", json.dumps(payload))
+  except Exception:
+    pass  # Redis indisponible → le pipeline continue
+
+
 def run_couche(couche: str, indicateurs: dict):
   print("\n" + "=" * 50)
   print(f"  COUCHE {couche.upper()}")
   print("=" * 50)
   for nom, indic in indicateurs.items():
     print(f"\n  ── {nom} : {indic['label']} ──")
+    _publish_event("task_start", f"Début {couche} {nom}", nom)
     indic[couche]()
+    _publish_event("task_done", f"{couche.capitalize()} {nom} terminé", nom)
 
 
 if __name__ == "__main__":
@@ -200,4 +222,5 @@ if __name__ == "__main__":
     load_to_databases()
 
   elapsed = time.time() - t0
+  _publish_event("pipeline_done", f"Pipeline terminé en {elapsed:.1f}s")
   print(f"\nPipeline termine en {elapsed:.1f}s")

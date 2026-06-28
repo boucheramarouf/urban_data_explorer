@@ -31,9 +31,11 @@ from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
-from fastapi import APIRouter, FastAPI, HTTPException, Query
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.security import APIKeyHeader
+from api.auth import verify_api_key
 
 # ─── Import optionnel de sqlalchemy ──────────────────────────────────────────
 try:
@@ -216,7 +218,7 @@ except FileNotFoundError:
 # ─── App ──────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Urban Data Explorer — API",
-    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.",
+    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.\n\n**Authentification** : fournir la clé dans l'en-tête `X-API-Key`. Bouton **Authorize** ci-dessus.",
     version="1.0.0",
 )
 
@@ -228,7 +230,7 @@ app.add_middleware(
 )
 
 if _SVP_ROUTER_AVAILABLE:
-    app.include_router(svp_router, prefix="/svp")
+    app.include_router(svp_router, prefix="/svp", dependencies=[Depends(verify_api_key)])
 
 
 @app.get("/", include_in_schema=False)
@@ -252,7 +254,7 @@ def health():
 
 
 # ─── Routeur IMQ ──────────────────────────────────────────────────────────────
-imq_router = APIRouter(prefix="/imq", tags=["IMQ"])
+imq_router = APIRouter(prefix="/imq", tags=["IMQ"], dependencies=[Depends(verify_api_key)])
 
 
 @imq_router.get("/geojson")
@@ -307,7 +309,7 @@ def imq_stats():
 
 
 # ─── Routeur ITR ──────────────────────────────────────────────────────────────
-itr_router = APIRouter(prefix="/itr", tags=["ITR"])
+itr_router = APIRouter(prefix="/itr", tags=["ITR"], dependencies=[Depends(verify_api_key)])
 
 
 @itr_router.get("/geojson")
@@ -413,7 +415,7 @@ def itr_get_rue(
 
 
 # ─── Routes IAML ──────────────────────────────────────────────────────────────
-iaml_router = APIRouter(prefix="/iaml", tags=["IAML"])
+iaml_router = APIRouter(prefix="/iaml", tags=["IAML"], dependencies=[Depends(verify_api_key)])
 
 
 @iaml_router.get("/stats")
@@ -535,3 +537,11 @@ def iaml_geojson(
 app.include_router(imq_router)
 app.include_router(itr_router)
 app.include_router(iaml_router)
+
+# ─── Streaming Pub/Sub ────────────────────────────────────────────────────────
+try:
+    from api.streaming import router as streaming_router
+    app.include_router(streaming_router)
+    print("  Streaming Redis Pub/Sub activé → /stream/events")
+except ImportError as e:
+    print(f"  [SKIP] Streaming indisponible : {e}")
