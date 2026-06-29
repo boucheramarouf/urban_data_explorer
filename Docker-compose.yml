@@ -115,10 +115,10 @@ services:
     env_file:
       - .env
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
       AIRFLOW_HOME: /app
     depends_on:
@@ -152,10 +152,10 @@ services:
     env_file:
       - .env
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
@@ -194,10 +194,10 @@ services:
     env_file:
       - .env
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "False"
@@ -216,9 +216,9 @@ services:
       - .:/app
     command: airflow scheduler
     healthcheck:
-      test: ["CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--hostname", "urban_data_explorer_airflow_scheduler"]
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --allow-multiple 2>/dev/null || airflow jobs check --job-type SchedulerJob 2>/dev/null"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 5
 
   # ──────────────────────────────────────────────────────────────
@@ -233,10 +233,10 @@ services:
     env_file:
       - .env
     environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__CORE__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}_airflow
       AIRFLOW__CORE__DAGS_FOLDER: /app/dags
       AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Paris
       AIRFLOW_HOME: /app

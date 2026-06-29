@@ -13,6 +13,7 @@ pyogrio>=0.7.0
 fastapi==0.111.0
 uvicorn==0.30.1
 redis>=5.0.0
+slowapi>=0.1.9
 
 # Database
 sqlalchemy>=2.0

@@ -31,11 +31,50 @@ from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Depends
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from api.auth import verify_api_key
+
+# ─── Rate-limiting (Redis) ──────────────────────────────────
+try:
+    from slowapi import Limiter, _rate_limit_exceeded_handler
+    from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
+    _SLOWAPI_AVAILABLE = True
+except ImportError:
+    _SLOWAPI_AVAILABLE = False
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as StarletteJSON
+
+RATE_LIMIT     = int(os.getenv("RATE_LIMIT", 300))   # requêtes max
+RATE_WINDOW    = int(os.getenv("RATE_WINDOW", 60))    # fenêtre en secondes
+
+class _RateLimitMiddleware(BaseHTTPMiddleware):
+    """Rate-limiting par IP via Redis."""
+    SKIP_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
+
+    async def dispatch(self, request, call_next):
+        if request.url.path in self.SKIP_PATHS:
+            return await call_next(request)
+        ip = request.client.host if request.client else "unknown"
+        try:
+            import redis as _redis
+            r = _redis.Redis(host="redis", port=6379, decode_responses=True, socket_connect_timeout=1)
+            key = f"rl:{ip}"
+            count = r.incr(key)
+            if count == 1:
+                r.expire(key, RATE_WINDOW)
+            if count > RATE_LIMIT:
+                return StarletteJSON(
+                    status_code=429,
+                    content={"detail": f"Trop de requêtes. Limite : {RATE_LIMIT} req/{RATE_WINDOW}s par IP."},
+                )
+        except Exception:
+            pass  # Redis indisponible → accès libre
+        return await call_next(request)
 
 # ─── Import optionnel de sqlalchemy ──────────────────────────────────────────
 try:
@@ -218,9 +257,17 @@ except FileNotFoundError:
 # ─── App ──────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Urban Data Explorer — API",
-    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.\n\n**Authentification** : fournir la clé dans l'en-tête `X-API-Key`. Bouton **Authorize** ci-dessus.",
+    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.\n\n**Authentification** : fournir la clé dans l'en-tête `X-API-Key`. Bouton **Authorize** ci-dessus.\n\n**Rate-limiting** : 300 requêtes/minute par IP.",
     version="1.0.0",
 )
+
+if _SLOWAPI_AVAILABLE:
+    from slowapi.middleware import SlowAPIMiddleware
+    app.state.limiter = Limiter(key_func=get_remote_address)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(_RateLimitMiddleware)
+print(f"  Rate-limiting activé : {RATE_LIMIT} req/{RATE_WINDOW}s par IP (via Redis)")
 
 app.add_middleware(
     CORSMiddleware,

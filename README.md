@@ -8,66 +8,125 @@ Plateforme d'analyse et de visualisation des dynamiques du logement à Paris.
 ## Architecture globale
 
 ```mermaid
-flowchart TD
-    subgraph SOURCES["Sources open data"]
-        DVF["DVF+ · GeoPackage\n(transactions immo)"]
-        SIRENE["SIRENE · CSV.GZ\n(établissements)"]
-        LOVAC["LOVAC · Excel\n(logements vacants)"]
-        FILO["Filosofi · CSV\n(revenus IRIS)"]
-        GTFS["GTFS IDF Mobilités\n(transports)"]
-        OSM["OpenStreetMap\n(espaces verts, arbres)"]
-        VELIB["Vélib' API\n(stations)"]
+flowchart LR
+    subgraph SRC["Sources open data"]
+        direction TB
+        S1["DVF+ · SIRENE\nLOVAC · Filosofi"]
+        S2["GTFS · OSM\nVélib'"]
     end
 
-    subgraph LAKE["Data Lake — Parquet (Bronze / Silver / Gold)"]
-        BRONZE["Bronze\ningestion brute multi-formats"]
-        SILVER["Silver\nnettoyage · jointures spatiales · agrégations"]
-        GOLD["Gold\nIMQ · ITR · SVP · IAML\n(scores 0-100 par IRIS ou par rue)"]
+    subgraph LAKE["Data Lake — Medallion Architecture"]
+        direction TB
+        RAW["Raw\nfichiers sources bruts"]
+        BRONZE["Bronze\ningestion Parquet"]
+        SILVER["Silver\nnettoyage · jointures"]
+        GOLD["Gold\nIMQ · ITR · SVP · IAML"]
+        RAW --> BRONZE --> SILVER --> GOLD
+    end
+
+    subgraph STORE["Bases de données"]
+        direction TB
+        PG["PostgreSQL 16\n4 tables"]
+        MONGO["MongoDB 7\n4 collections"]
+    end
+
+    subgraph BACKEND["API — FastAPI :8000"]
+        direction TB
+        SEC["Auth X-API-Key\nRate-limit 300 req/min"]
+        END["Endpoints GeoJSON\n/imq /itr /svp /iaml"]
+        SSE["/stream/events\nRedis Pub/Sub SSE"]
+        SEC --> END
+    end
+
+    subgraph FRONT["Frontend React :3000"]
+        direction TB
+        MAP["Carte MapLibre\n4 indicateurs"]
+        PAGES["Comparateur\nIndicateurs · Sources"]
     end
 
     subgraph ORCH["Orchestration"]
-        AIRFLOW["Apache Airflow\nScheduler · Webserver · Worker\n:8080"]
-        REDIS["Redis 7\nCelery broker + Pub/Sub streaming\n:6379"]
+        direction TB
+        AF["Airflow\nDAG quotidien 02:00"]
+        RD["Redis\nCelery + Pub/Sub"]
     end
 
-    subgraph STORAGE["Bases de données"]
-        PG["PostgreSQL 16\n4 tables · urban_data\n:5432"]
-        MONGO["MongoDB 7\n4 collections · urban_data\n:27017"]
-    end
-
-    subgraph API["FastAPI · :8000"]
-        AUTH["Auth X-API-Key\n(en-tête X-API-Key)"]
-        IND["IMQ · ITR · SVP · IAML\n/stats · /geojson · /rues"]
-        STREAM["/stream/events\nSSE temps réel (Pub/Sub)"]
-        DOCS["Swagger UI · /docs"]
-    end
-
-    subgraph FRONT["Frontend React + MapLibre · :3000"]
-        MAP["Carte interactive\nfiltres · tooltips · légende"]
-        PAGES["Comparateur · Indicateurs\nMéthodologie · Sources"]
-    end
-
-    subgraph ADMIN["Administration"]
-        PGADMIN["pgAdmin 4 · :5051"]
-        MEXPRESS["Mongo Express · :8081"]
-    end
-
-    SOURCES --> BRONZE
-    BRONZE --> SILVER
-    SILVER --> GOLD
-    AIRFLOW -- "orchestre bronze→silver→gold" --> LAKE
-    REDIS -- "broker Celery" --> AIRFLOW
-    GOLD -- "load_to_postgres.py" --> PG
-    GOLD -- "load_to_mongo.py" --> MONGO
-    PG --> IND
-    MONGO --> IND
-    AUTH --> IND
-    REDIS -- "Pub/Sub events" --> STREAM
-    IND --> MAP
-    IND --> PAGES
-    PG --> PGADMIN
-    MONGO --> MEXPRESS
+    SRC --> RAW
+    GOLD --> PG & MONGO
+    PG & MONGO --> END
+    END --> MAP & PAGES
+    AF -- "pilote" --> LAKE
+    RD -- "broker" --> AF
+    RD -- "events" --> SSE
 ```
+
+---
+
+## Schéma relationnel — PostgreSQL
+
+```mermaid
+erDiagram
+    imq_par_iris {
+        TEXT iris_code PK
+        TEXT iris_nom
+        TEXT arr_insee
+        FLOAT delta_prix_norm
+        FLOAT ratio_comm_norm
+        FLOAT revenu_norm
+        FLOAT vacance_norm
+        FLOAT score_imq
+        TEXT interpretation
+    }
+
+    itr_par_rue {
+        TEXT nom_voie PK
+        TEXT code_postal PK
+        INT arrondissement
+        TEXT code_iris FK
+        FLOAT lon_centre
+        FLOAT lat_centre
+        FLOAT prix_m2_median
+        FLOAT revenu_median_uc
+        INT nb_logements_sociaux
+        INT nb_transactions
+        FLOAT itr_score
+        TEXT itr_label
+    }
+
+    svp_par_rue {
+        TEXT nom_voie PK
+        TEXT code_postal PK
+        INT arrondissement
+        TEXT code_iris FK
+        FLOAT lon_centre
+        FLOAT lat_centre
+        INT nb_espaces_verts
+        INT nb_arbres
+        FLOAT svp_score
+        TEXT svp_label
+        BOOL has_commerce
+    }
+
+    iaml_par_rue {
+        TEXT nom_voie PK
+        TEXT code_postal PK
+        INT arrondissement
+        FLOAT lon_centre
+        FLOAT lat_centre
+        FLOAT prix_m2_median
+        INT nb_lignes_metro
+        INT nb_lignes_bus
+        INT nb_points_velib
+        FLOAT score_accessibilite
+        FLOAT iaml_score
+        TEXT iaml_label
+    }
+
+    imq_par_iris ||--o{ itr_par_rue : "code_iris"
+    imq_par_iris ||--o{ svp_par_rue : "code_iris"
+```
+
+> Granularité : `imq_par_iris` à l'échelle IRIS · `itr_par_rue`, `svp_par_rue`, `iaml_par_rue` à l'échelle rue.  
+> Clé de jointure spatiale : `code_iris` — chaque rue appartient à un IRIS parisien.
 
 ---
 
@@ -90,7 +149,7 @@ flowchart TD
 | Orchestration | Apache Airflow 2 · Celery · Redis |
 | Base relationnelle | PostgreSQL 16 |
 | Base documentaire | MongoDB 7 |
-| API | FastAPI · Uvicorn · Auth API Key |
+| API | FastAPI · Uvicorn · Auth API Key · Rate-limiting Redis |
 | Streaming | Redis Pub/Sub · SSE (Server-Sent Events) |
 | Frontend | React 18 · MapLibre GL JS 4 · Vite |
 | Infrastructure | Docker · Docker Compose |
@@ -152,6 +211,9 @@ Tous les endpoints (sauf `/health`) requièrent l'en-tête :
 X-API-Key: urban-data-explorer-2026
 ```
 
+### Rate-limiting
+300 requêtes par minute par IP (compteur Redis). Au-delà : `429 Too Many Requests`.
+
 ### Indicateurs
 ```
 GET /imq/geojson   GET /imq/stats
@@ -171,11 +233,13 @@ POST /stream/publish   → publier un événement (test)
 
 ## Pipeline détaillé
 
+Architecture Medallion (4 couches) :
+
 ```
-data/raw/          → Bronze (ingestion, aucune transformation)
-data/bronze/       → Silver (nettoyage, jointures spatiales, agrégations)
-data/silver/       → Gold  (calcul des scores IMQ/ITR/SVP/IAML)
-data/gold/         → PostgreSQL + MongoDB
+data/raw/          → fichiers sources bruts (DVF .gpkg, SIRENE .csv.gz, LOVAC .xlsx…)
+data/bronze/       → ingestion Parquet sans transformation (conversion de format)
+data/silver/       → nettoyage, jointures spatiales, agrégations par IRIS ou rue
+data/gold/         → scores IMQ/ITR/SVP/IAML (0-100) + chargement PostgreSQL & MongoDB
 ```
 
 Commandes par couche :
