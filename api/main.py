@@ -31,11 +31,11 @@ from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Depends, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
-from api.auth import verify_api_key
+from api.auth import verify_jwt_token, create_access_token, CLIENT_ID, CLIENT_SECRET, EXPIRE_MIN
 
 # ─── Rate-limiting (Redis) ──────────────────────────────────
 try:
@@ -257,7 +257,7 @@ except FileNotFoundError:
 # ─── App ──────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="Urban Data Explorer — API",
-    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.\n\n**Authentification** : fournir la clé dans l'en-tête `X-API-Key`. Bouton **Authorize** ci-dessus.\n\n**Rate-limiting** : 300 requêtes/minute par IP.",
+    description="API exposant les indicateurs IMQ, ITR, SVP et IAML pour Paris.\n\n**Authentification JWT** : POST `/token` avec `client_id` + `client_secret` pour obtenir un Bearer token. Bouton **Authorize** → saisir le token.\n\n**Rate-limiting** : 300 requêtes/minute par IP.",
     version="1.0.0",
 )
 
@@ -277,7 +277,23 @@ app.add_middleware(
 )
 
 if _SVP_ROUTER_AVAILABLE:
-    app.include_router(svp_router, prefix="/svp", dependencies=[Depends(verify_api_key)])
+    app.include_router(svp_router, prefix="/svp", dependencies=[Depends(verify_jwt_token)])
+
+
+@app.post("/token", tags=["Authentification"])
+def get_token(client_id: str, client_secret: str):
+    """Obtenir un JWT (valable 1h) en échangeant les credentials client."""
+    if client_id != CLIENT_ID or client_secret != CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Identifiants invalides.",
+        )
+    token = create_access_token(client_id)
+    return {
+        "access_token": token,
+        "token_type":   "bearer",
+        "expires_in":   EXPIRE_MIN * 60,
+    }
 
 
 @app.get("/", include_in_schema=False)
@@ -301,7 +317,7 @@ def health():
 
 
 # ─── Routeur IMQ ──────────────────────────────────────────────────────────────
-imq_router = APIRouter(prefix="/imq", tags=["IMQ"], dependencies=[Depends(verify_api_key)])
+imq_router = APIRouter(prefix="/imq", tags=["IMQ"], dependencies=[Depends(verify_jwt_token)])
 
 
 @imq_router.get("/geojson")
@@ -356,7 +372,7 @@ def imq_stats():
 
 
 # ─── Routeur ITR ──────────────────────────────────────────────────────────────
-itr_router = APIRouter(prefix="/itr", tags=["ITR"], dependencies=[Depends(verify_api_key)])
+itr_router = APIRouter(prefix="/itr", tags=["ITR"], dependencies=[Depends(verify_jwt_token)])
 
 
 @itr_router.get("/geojson")
@@ -462,7 +478,7 @@ def itr_get_rue(
 
 
 # ─── Routes IAML ──────────────────────────────────────────────────────────────
-iaml_router = APIRouter(prefix="/iaml", tags=["IAML"], dependencies=[Depends(verify_api_key)])
+iaml_router = APIRouter(prefix="/iaml", tags=["IAML"], dependencies=[Depends(verify_jwt_token)])
 
 
 @iaml_router.get("/stats")

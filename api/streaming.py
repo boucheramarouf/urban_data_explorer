@@ -24,7 +24,7 @@ import redis
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from api.auth import verify_api_key
+from api.auth import verify_jwt_token
 
 REDIS_HOST    = os.getenv("REDIS_HOST", "redis")
 REDIS_PORT    = int(os.getenv("REDIS_PORT", 6379))
@@ -69,7 +69,7 @@ def stream_status():
 @router.post(
     "/publish",
     summary="Publier un événement sur le canal Redis",
-    dependencies=[Depends(verify_api_key)],
+    dependencies=[Depends(verify_jwt_token)],
 )
 def publish_event(event_type: str, message: str, indicateur: Optional[str] = None):
     client = get_redis_client()

@@ -1,39 +1,75 @@
 """
-Authentification par API Key — Urban Data Explorer
-===================================================
-La clé est transmise dans l'en-tête HTTP : X-API-Key
+Authentification JWT — Urban Data Explorer
+==========================================
+Flux machine-to-machine (Option A) :
 
-Configuration :
-  - Définir API_KEY dans le fichier .env (ou variable d'environnement)
-  - Si API_KEY n'est pas défini → accès libre (mode développement)
+  1. Le client POST /token avec client_id + client_secret
+  2. L'API retourne un JWT signé (expiration : 1h)
+  3. Le client passe le JWT dans chaque requête : Authorization: Bearer <token>
 
-Utilisation dans Swagger : bouton "Authorize" en haut à droite.
+Configuration (.env) :
+  CLIENT_ID      = identifiant de l'application cliente
+  CLIENT_SECRET  = secret partagé (remplace l'ancienne API Key)
+  JWT_SECRET     = clé de signature des tokens (garder secrète)
 """
 
 import os
-from fastapi import Depends, HTTPException, Security, status
-from fastapi.security import APIKeyHeader
+from datetime import datetime, timedelta, timezone
 
-API_KEY_NAME = "X-API-Key"
-_api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+# ─── Configuration ────────────────────────────────────────────────────────────
+JWT_SECRET   = os.getenv("JWT_SECRET",    "urban-data-jwt-secret-2026")
+ALGORITHM    = "HS256"
+EXPIRE_MIN   = int(os.getenv("JWT_EXPIRE_MINUTES", 60))
+
+CLIENT_ID     = os.getenv("CLIENT_ID",     "urban-frontend")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET", "urban-data-explorer-2026")
+
+# ─── Schéma Bearer (affiche le cadenas dans Swagger) ─────────────────────────
+_bearer = HTTPBearer(auto_error=False)
 
 
-def verify_api_key(api_key: str = Security(_api_key_header)) -> str:
+def create_access_token(client_id: str) -> str:
+    """Crée un JWT signé avec expiration."""
+    payload = {
+        "sub": client_id,
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_MIN),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=ALGORITHM)
+
+
+def verify_jwt_token(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+) -> str:
     """
-    Dépendance FastAPI : vérifie la clé API dans l'en-tête X-API-Key.
-    Si API_KEY n'est pas configuré dans l'environnement, l'accès est libre.
+    Dépendance FastAPI : vérifie le JWT dans l'en-tête Authorization: Bearer <token>.
+    Retourne le client_id si le token est valide.
     """
-    expected = os.getenv("API_KEY")
-
-    if not expected:
-        # Mode développement : aucune clé configurée → accès libre
-        return "dev-mode"
-
-    if not api_key or api_key != expected:
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Clé API invalide ou manquante. Fournir dans l'en-tête X-API-Key.",
-            headers={"WWW-Authenticate": "ApiKey"},
+            detail="Token manquant. POST /token pour obtenir un JWT.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-
-    return api_key
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[ALGORITHM])
+        client_id: str = payload.get("sub")
+        if not client_id:
+            raise ValueError("sub manquant")
+        return client_id
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expiré. POST /token pour en obtenir un nouveau.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except (jwt.InvalidTokenError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

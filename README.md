@@ -32,7 +32,7 @@ flowchart LR
 
     subgraph BACKEND["API — FastAPI :8000"]
         direction TB
-        SEC["Auth X-API-Key\nRate-limit 300 req/min"]
+        SEC["Auth JWT Bearer\nRate-limit 300 req/min"]
         END["Endpoints GeoJSON\n/imq /itr /svp /iaml"]
         SSE["/stream/events\nRedis Pub/Sub SSE"]
         SEC --> END
@@ -195,8 +195,8 @@ Les étapes déjà calculées sont automatiquement ignorées (cache Parquet).
 | Service | URL | Credentials |
 |---|---|---|
 | Frontend React | http://localhost:3000 | — |
-| API FastAPI | http://localhost:8000 | `X-API-Key: urban-data-explorer-2026` |
-| Swagger / docs | http://localhost:8000/docs | même clé via bouton Authorize |
+| API FastAPI | http://localhost:8000 | JWT — voir ci-dessous |
+| Swagger / docs | http://localhost:8000/docs | JWT via bouton Authorize |
 | Airflow UI | http://localhost:8080 | admin / admin |
 | pgAdmin | http://localhost:5051 | admin@local.com / admin |
 | Mongo Express | http://localhost:8081 | admin / admin |
@@ -205,11 +205,18 @@ Les étapes déjà calculées sont automatiquement ignorées (cache Parquet).
 
 ## API — Endpoints principaux
 
-### Authentification
-Tous les endpoints (sauf `/health`) requièrent l'en-tête :
+### Authentification JWT
+Tous les endpoints (sauf `/health`) requièrent un Bearer token obtenu via `POST /token` :
+
+```bash
+# 1. Obtenir un token (valable 1h)
+POST /token?client_id=urban-frontend&client_secret=urban-data-explorer-2026
+
+# 2. Utiliser le token
+Authorization: Bearer <access_token>
 ```
-X-API-Key: urban-data-explorer-2026
-```
+
+Dans Swagger : exécuter `POST /token` → copier `access_token` → bouton **Authorize** → coller le token.
 
 ### Rate-limiting
 300 requêtes par minute par IP (compteur Redis). Au-delà : `429 Too Many Requests`.
